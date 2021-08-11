@@ -34,7 +34,6 @@ export default function DetailForm({ currentConference, isEdit, detailFormProps 
 
   useEffect(() => {
     if (isEdit && currentConference !== undefined) {
-      console.log(currentConference);
       const { name, description, publisher, logoURL, score, abbreviation } = currentConference;
       let fname = logoURL.split('/');
       fname = fname[fname.length - 1];

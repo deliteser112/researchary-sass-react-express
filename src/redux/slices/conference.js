@@ -70,8 +70,7 @@ export function createConference({ conferenceData }) {
   return async (dispatch) => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.post('/api/conference/create-conference', data);
-      console.log(response);
+      await axios.post('/api/conference/create-conference', data);
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
@@ -88,8 +87,7 @@ export function updateConference({ updateData }) {
     dispatch(slice.actions.startLoading());
     try {
       console.log('Here is redux', data);
-      const response = await axios.post('/api/conference/update-conference', data);
-      console.log(response);
+      await axios.post('/api/conference/update-conference', data);
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

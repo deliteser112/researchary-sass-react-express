@@ -25,7 +25,6 @@ export default function ResearchTopicsForm({ currentTeam, isEdit, topics, topics
   useEffect(() => {
     if (isEdit && currentTeam !== undefined) {
       const { topics } = currentTeam;
-      console.log('Here is researchform topics:', topics);
       setTags([...topics]);
     }
   }, [currentTeam, isEdit]);

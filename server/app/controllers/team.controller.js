@@ -172,7 +172,6 @@ async function getTeams(teams) {
 // ----------------------------------------------------------------------
 
 exports.updateTeam = (req, res) => {
-  console.log(req.body);
   const { id, detailForm, researchTopicsForm, teamMembers } = req.body;
 
   const { description, name, filename, affiliation } = detailForm;

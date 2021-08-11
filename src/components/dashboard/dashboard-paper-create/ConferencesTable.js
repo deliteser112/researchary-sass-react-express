@@ -55,15 +55,12 @@ export default function ConferencesTable({ target, conferenceTable, dataProps })
   }, [targetedValue]);
 
   useEffect(() => {
-    console.log(target, conferenceTable);
     if (conferenceTable.length > 0) {
       const tmpConference = [];
       conferenceTable.map((conference) => {
         if (conference.id === target) {
-          console.log('A:', conference, target);
           tmpConference.push({ ...conference, targeted: true });
         } else {
-          console.log('B:', conference, target);
           tmpConference.push(conference);
         }
       });

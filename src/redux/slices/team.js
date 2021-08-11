@@ -54,7 +54,6 @@ export function getTeamList() {
     dispatch(slice.actions.startLoading());
     try {
       const response = await axios.get('/api/team/all-teams');
-      console.log('Here is redux resonse:', response);
       dispatch(slice.actions.getTeamListSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
@@ -71,8 +70,7 @@ export function createTeam({ teamData }) {
   return async (dispatch) => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.post('/api/team/create-team', data);
-      console.log(response);
+      await axios.post('/api/team/create-team', data);
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
@@ -88,9 +86,7 @@ export function updateTeam({ updateData }) {
   return async (dispatch) => {
     dispatch(slice.actions.startLoading());
     try {
-      console.log('Here is redux', data);
-      const response = await axios.post('/api/team/update-team', data);
-      console.log(response);
+      await axios.post('/api/team/update-team', data);
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

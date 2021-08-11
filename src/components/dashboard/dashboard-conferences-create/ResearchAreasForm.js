@@ -20,10 +20,6 @@ export default function ResearchAreasForm({ teams, topics, isEdit, topicsFormPro
   const [selectedTeams, setSelectedTeams] = useState([]);
 
   useEffect(() => {
-    console.log('M:', teams, topics);
-  }, [teams, topics]);
-
-  useEffect(() => {
     const areaObj = {
       topics: tags,
       teams: selectedTeams

@@ -229,7 +229,7 @@ export function updateTask({ updateData }) {
   return async (dispatch) => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.post('/api/paper/update-task', data);
+      await axios.post('/api/paper/update-task', data);
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

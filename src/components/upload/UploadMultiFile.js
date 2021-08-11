@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { isString } from 'lodash';
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
@@ -72,10 +72,6 @@ export default function UploadMultiFile({
   ...other
 }) {
   const hasFile = files.length > 0;
-
-  useEffect(() => {
-    console.log('------------->', isLoading);
-  }, [isLoading]);
 
   const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
     ...other

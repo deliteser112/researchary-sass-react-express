@@ -24,7 +24,6 @@ export default function TaskMoreMenu({ onDelete, taskId, paperId, authors }) {
   const [isDialog, setIsDialog] = useState(false);
 
   const handleClickTask = () => {
-    console.log('task is clicked', taskId, paperId, authors);
     setIsDialog(true);
   };
 

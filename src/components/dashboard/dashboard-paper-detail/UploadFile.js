@@ -73,7 +73,6 @@ export default function UploadFile({ currentPaper, uploadProps }) {
 
   const handleUploadFiles = async () => {
     setIsLoading(true);
-    console.log(files);
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('paperId[]', paperId);
@@ -81,19 +80,13 @@ export default function UploadFile({ currentPaper, uploadProps }) {
       formData.append('files', file);
     });
 
-    console.log('this is formdata1');
-
     await axios
       .post(CLOUDINARY_URL, formData, {
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'multipart/form-data' }
       })
-      .then((response) => {
-        const { data } = response;
-        console.log(data);
-        // const avatarURL = `/static/uploads/${data.filename}`;
+      .then(() => {
         setIsLoading(false);
       });
-    console.log('this is formdata2');
     handleClose();
     uploadProps();
   };

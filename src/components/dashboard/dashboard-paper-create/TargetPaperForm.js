@@ -57,7 +57,6 @@ export default function TargetPaperForm({ currentPaper, isEdit, conference, targ
   useEffect(() => {
     if (isEdit && currentPaper !== undefined) {
       const { target } = currentPaper;
-      console.log('Here is targetForm:', target);
       setTarget(target);
     }
   }, [currentPaper, isEdit]);

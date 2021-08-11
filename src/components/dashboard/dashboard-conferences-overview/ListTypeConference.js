@@ -99,10 +99,6 @@ export default function ListTypeTeam() {
     dispatch(getTeamList());
   }, [dispatch]);
 
-  useEffect(() => {
-    console.log('This is conferenceList:', conferenceList);
-  }, [conferenceList]);
-
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');

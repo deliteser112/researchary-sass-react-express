@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import PropTypes from 'prop-types';
 
 import React, { useState, useEffect } from 'react';
@@ -102,9 +103,8 @@ export default function ConferenceVersions({ currentConference, isEdit, versionF
       const { versions } = currentConference;
       setConferenceVersions([...versions]);
       versionFormProps([...versions]);
-      console.log(versions);
     }
-  }, [currentConference, isEdit]);
+  }, [currentConference, isEdit, versionFormProps]);
 
   useEffect(() => {
     const versionObj = {

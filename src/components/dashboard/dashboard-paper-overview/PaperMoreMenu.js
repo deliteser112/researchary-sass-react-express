@@ -21,8 +21,6 @@ export default function PaperMoreMenu({ onDelete, paperId }) {
   const ref = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  console.log(paperId);
-
   return (
     <>
       <IconButton ref={ref} onClick={() => setIsOpen(true)}>

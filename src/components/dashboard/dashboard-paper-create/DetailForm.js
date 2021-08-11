@@ -43,14 +43,12 @@ export default function DetailForm({ currentPaper, isEdit, topics, privacies, de
   const [detailFormData, setDetailFormData] = useState({});
 
   useEffect(() => {
-    console.log(currentPaper, isEdit);
     if (isEdit && currentPaper !== undefined) {
       const { title, description, privacy, topics, openRequest } = currentPaper;
       setTitle(title);
       setDescription(description);
       setPrivacy(privacy);
       setOpenRequest(!!openRequest);
-      console.log('Here is topics->', topics);
       setTags([...topics]);
     }
   }, [currentPaper, isEdit]);
