@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import PropTypes from 'prop-types';
 // material
 import { visuallyHidden } from '@material-ui/utils';

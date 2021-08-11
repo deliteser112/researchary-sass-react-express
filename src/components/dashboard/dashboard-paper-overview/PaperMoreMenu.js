@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
-import { paramCase } from 'change-case';
 import { useRef, useState } from 'react';
 import editFill from '@iconify/icons-eva/edit-fill';
 import { Link as RouterLink } from 'react-router-dom';
@@ -48,13 +47,13 @@ export default function PaperMoreMenu({ onDelete, paperId }) {
           <ListItemIcon>
             <VisibilityIcon />
           </ListItemIcon>
-          <ListItemText primary="View" primaryTypographyProps={{ variant: 'body2' }} />
+          <ListItemText primary="View Paper" primaryTypographyProps={{ variant: 'body2' }} />
         </MenuItem>
         <MenuItem component={RouterLink} to={`${PATH_DASHBOARD.papers.root}/${paperId}/edit`}>
           <ListItemIcon>
             <Icon icon={editFill} width={24} height={24} />
           </ListItemIcon>
-          <ListItemText primaryTypographyProps={{ variant: 'caption' }}>Edit Team</ListItemText>
+          <ListItemText primaryTypographyProps={{ variant: 'caption' }}>Edit Paper</ListItemText>
         </MenuItem>
         <MenuItem onClick={onDelete} sx={{ color: 'text.secondary' }}>
           <ListItemIcon>
