@@ -76,6 +76,19 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+function applySortFilterByStatus(array, comparator, query) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  if (query) {
+    return array.filter((_paper) => _paper.status.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+  }
+  return stabilizedThis.map((el) => el[0]);
+}
+
 Tasks.propTypes = {
   currentPaper: PropTypes.object
 };
@@ -90,6 +103,7 @@ export default function Tasks({ currentPaper }) {
   const [orderBy, setOrderBy] = useState('title');
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [filterStatus, setFilterStatus] = useState('');
 
   const [authors, setAuthors] = useState([]);
   const [paperId, setPaperId] = useState(0);
@@ -167,11 +181,16 @@ export default function Tasks({ currentPaper }) {
     dispatch(deleteTask(userId));
   };
 
+  const handleFilterByStatus = (status) => {
+    setFilterStatus(status);
+  };
+
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - tasks.length) : 0;
 
   const filteredUsers = applySortFilter(tasks, getComparator(order, orderBy), filterName);
+  const filteredPapers = applySortFilterByStatus(filteredUsers, getComparator(order, orderBy), filterStatus);
 
-  const isUserNotFound = filteredUsers.length === 0;
+  const isUserNotFound = filteredPapers.length === 0;
 
   return (
     <>
@@ -179,8 +198,13 @@ export default function Tasks({ currentPaper }) {
         <AddTask paperId={paperId} authors={authors} isEdit={false} />
       </Box>
       <Card>
-        <TaskListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
+        <TaskListToolbar
+          numSelected={selected.length}
+          filterName={filterName}
+          filterStatus={filterStatus}
+          onFilterName={handleFilterByName}
+          onFilterStatus={handleFilterByStatus}
+        />
         <Scrollbar>
           <TableContainer sx={{ minWidth: 800 }}>
             <Table>
@@ -194,7 +218,7 @@ export default function Tasks({ currentPaper }) {
                 onSelectAllClick={handleSelectAllClick}
               />
               <TableBody>
-                {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                {filteredPapers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                   const { id, title, createdby, assignedby, status, dueDate } = row;
                   const isItemSelected = selected.indexOf(id) !== -1;
 
@@ -234,7 +258,7 @@ export default function Tasks({ currentPaper }) {
                           variant={theme.palette.mode === 'light' ? 'ghost' : 'filled'}
                           color={
                             (status === 'Completed' && 'success') ||
-                            (status === 'In progress' && 'warning') ||
+                            (status === 'In progress' && 'secondary') ||
                             'secondary'
                           }
                         >

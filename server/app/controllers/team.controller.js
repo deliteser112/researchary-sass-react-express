@@ -1,14 +1,16 @@
-/* eslint-disable prefer-destructuring */
-/* eslint-disable no-continue */
-/* eslint-disable consistent-return */
-/* eslint-disable no-await-in-loop */
 /* eslint-disable array-callback-return */
+const jwt = require('jsonwebtoken');
 const multer = require('multer');
+
+const config = require('../config/auth.config');
+
+const JWT_SECRET = config.secret;
 
 const db = require('../models');
 
 const Team = db.team;
 const Topic = db.topic;
+const User = db.user;
 
 const { ROLES } = db;
 
@@ -48,6 +50,14 @@ exports.uploadFiles = (req, res) => {
 // ----------------------------------------------------------------------
 
 exports.createTeam = (req, res) => {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(400).send([]);
+  }
+
+  const accessToken = authorization.split(' ')[1];
+  const { userId } = jwt.verify(accessToken, JWT_SECRET);
+
   const { detailForm, researchTopicsForm, teamMembers } = req.body;
 
   const { description, name, filename, affiliation } = detailForm;
@@ -95,9 +105,21 @@ exports.createTeam = (req, res) => {
 
       team.setTopics(teamTagIds);
 
-      // User.findOne({ where: { id: userId } }).then((user) => {
-      //   user.setTopics(newTagIds);
-      // });
+      if (newTagIds.length > 0) {
+        User.findOne({ where: { id: userId } }).then(async (user) => {
+          const tmpTagIds = await user.getTopics();
+          const oldTagIds = [];
+          tmpTagIds.map((tag) => {
+            const { id, isActive } = tag;
+            if (isActive) {
+              oldTagIds.push(id);
+            }
+          });
+
+          const tmpNewIds = oldTagIds.concat(newTagIds);
+          user.setTopics(tmpNewIds);
+        });
+      }
     }
   );
 
@@ -134,7 +156,10 @@ async function getTeams(teams) {
       const topicData = await team.getTopics();
 
       topicData.map((topic) => {
-        topics.push(topic.name);
+        const { id, name, isActive } = topic;
+        if (isActive) {
+          topics.push({ id, name });
+        }
       });
       const data = team.getUsers().then((members) => {
         const teamMembers = [];
@@ -172,6 +197,14 @@ async function getTeams(teams) {
 // ----------------------------------------------------------------------
 
 exports.updateTeam = (req, res) => {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(400).send([]);
+  }
+
+  const accessToken = authorization.split(' ')[1];
+  const { userId } = jwt.verify(accessToken, JWT_SECRET);
+
   const { id, detailForm, researchTopicsForm, teamMembers } = req.body;
 
   const { description, name, filename, affiliation } = detailForm;
@@ -219,6 +252,22 @@ exports.updateTeam = (req, res) => {
     const paperTagIds = definedTags.concat(newTagIds);
 
     team.setTopics(paperTagIds);
+
+    if (newTagIds.length > 0) {
+      User.findOne({ where: { id: userId } }).then(async (user) => {
+        const tmpTagIds = await user.getTopics();
+        const oldTagIds = [];
+        tmpTagIds.map((tag) => {
+          const { id, isActive } = tag;
+          if (isActive) {
+            oldTagIds.push(id);
+          }
+        });
+
+        const tmpNewIds = oldTagIds.concat(newTagIds);
+        user.setTopics(tmpNewIds);
+      });
+    }
   });
 
   res.status(200).send({ message: 'success' });

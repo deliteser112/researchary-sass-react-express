@@ -23,6 +23,9 @@ import {
   Tooltip,
   Typography
 } from '@material-ui/core';
+
+// hooks
+import usePaper from '../hooks/usePaper';
 // redux
 import { useDispatch, useSelector } from '../redux/store';
 import { getPaperList, deletePaper } from '../redux/slices/paper';
@@ -80,15 +83,30 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+function applySortFilterByStatus(array, comparator, query) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  if (query) {
+    return array.filter((_paper) => _paper.status.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+  }
+  return stabilizedThis.map((el) => el[0]);
+}
+
 export default function PaperList() {
   const theme = useTheme();
   const dispatch = useDispatch();
+  const { deletePaperPost } = usePaper();
   const { paperList } = useSelector((state) => state.paper);
   const [page, setPage] = useState(0);
-  const [order, setOrder] = useState('asc');
   const [selected, setSelected] = useState([]);
+  const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('title');
   const [filterName, setFilterName] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [nPaperList, setNPaperList] = useState([]);
@@ -102,7 +120,7 @@ export default function PaperList() {
       const tmpPaper = [];
       paperList.map((paper) => {
         const { status } = paper;
-        if (status !== 'Completed') {
+        if (status !== 'Published') {
           tmpPaper.push(paper);
         }
       });
@@ -153,7 +171,13 @@ export default function PaperList() {
     setFilterName(event.target.value);
   };
 
+  const handleFilterByStatus = (status) => {
+    setFilterStatus(status);
+  };
+
   const handleDeletePaper = (paperId) => {
+    const pId = { paperId };
+    deletePaperPost({ pId });
     dispatch(deletePaper(paperId));
   };
 
@@ -161,7 +185,9 @@ export default function PaperList() {
 
   const filteredUsers = applySortFilter(nPaperList, getComparator(order, orderBy), filterName);
 
-  const isPaperNotFound = filteredUsers.length === 0;
+  const filteredPapers = applySortFilterByStatus(filteredUsers, getComparator(order, orderBy), filterStatus);
+
+  const isPaperNotFound = filteredPapers.length === 0;
 
   return (
     <Page title="Overview | Researchary">
@@ -186,7 +212,13 @@ export default function PaperList() {
         />
 
         <Card>
-          <PaperListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          <PaperListToolbar
+            numSelected={selected.length}
+            filterName={filterName}
+            filterStatus={filterStatus}
+            onFilterName={handleFilterByName}
+            onFilterStatus={handleFilterByStatus}
+          />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
@@ -201,7 +233,7 @@ export default function PaperList() {
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                  {filteredPapers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const { id, title, authors, status, target, dueDate, attached, view } = row;
                     const isItemSelected = selected.indexOf(id) !== -1;
 
@@ -218,7 +250,19 @@ export default function PaperList() {
                           <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, id)} />
                         </TableCell>
                         <TableCell align="left" sx={{ maxWidth: '300px' }}>
-                          {title}
+                          <Typography
+                            component={RouterLink}
+                            to={`${PATH_DASHBOARD.papers.root}/${id}/detail`}
+                            variant="subtitle1"
+                            sx={{
+                              textDecoration: 'auto',
+                              color: 'black',
+                              fontWeight: 200,
+                              '&:hover': { color: 'gray' }
+                            }}
+                          >
+                            {title}
+                          </Typography>
                         </TableCell>
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
@@ -239,7 +283,8 @@ export default function PaperList() {
                               (status === 'In progress' && 'secondary') ||
                               (status === 'Blocked/On Hold' && 'error') ||
                               (status === 'Ready to submit' && 'info') ||
-                              (status === 'Under review' && 'warning') ||
+                              (status === 'Submitted/Under review' && 'warning') ||
+                              (status === 'Rejected' && 'error') ||
                               (status === 'Accepted' && 'primary') ||
                               'success'
                             }
@@ -264,7 +309,12 @@ export default function PaperList() {
                         <TableCell align="left">{view}</TableCell>
 
                         <TableCell align="right">
-                          <PaperMoreMenu onDelete={() => handleDeletePaper(id)} paperId={id} />
+                          <PaperMoreMenu
+                            onDelete={(paperId) => handleDeletePaper(paperId)}
+                            paperId={id}
+                            authors={authors}
+                            paperName={title}
+                          />
                         </TableCell>
                       </TableRow>
                     );

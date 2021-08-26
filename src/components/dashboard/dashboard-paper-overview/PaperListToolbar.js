@@ -49,19 +49,20 @@ const SearchStyle = styled(OutlinedInput)(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-UserListToolbar.propTypes = {
+PaperListToolbar.propTypes = {
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
+  filterStatus: PropTypes.string,
+  isPublished: PropTypes.bool,
+  onFilterStatus: PropTypes.func,
   onFilterName: PropTypes.func
 };
 
-export default function UserListToolbar({ numSelected, filterName, onFilterName }) {
+export default function PaperListToolbar({ numSelected, filterName, filterStatus, isPublished, onFilterName, onFilterStatus }) {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
-
-  const [status, setStatus] = useState('Not started');
 
   const handleOpen = () => {
     setOpen(true);
@@ -71,7 +72,7 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName 
   };
 
   const handleChangeStatus = (e) => {
-    setStatus(e.target.value);
+    onFilterStatus(e.target.value);
   };
 
   return (
@@ -113,47 +114,49 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName 
           </IconButton>
         </Tooltip>
       )}
-      <MenuPopover open={open} onClose={handleClose} anchorEl={anchorRef.current} sx={{ px: 3, pb: 4, minWidth: 300 }}>
-        <Box sx={{ my: 1.5 }}>
-          <Typography variant="subtitle1" noWrap>
-            Filter papers
-          </Typography>
-        </Box>
+      {!isPublished && (
+        <MenuPopover open={open} onClose={handleClose} anchorEl={anchorRef.current} sx={{ px: 3, pb: 4, minWidth: 300 }}>
+          <Box sx={{ my: 1.5 }}>
+            <Typography variant="subtitle1" noWrap>
+              Filter papers
+            </Typography>
+          </Box>
 
-        <Divider sx={{ my: 1 }} />
+          <Divider sx={{ my: 1 }} />
 
-        <FormControl variant="outlined" sx={{ width: '100%' }}>
-          <InputLabel id="demo-simple-select-outlined-label">Status</InputLabel>
-          <Select
-            labelId="demo-simple-select-outlined-label"
-            id="demo-simple-select-outlined"
-            value={status}
-            onChange={handleChangeStatus}
-            label="Year"
-          >
-            {Status.map((item, index) => (
-              <MenuItem key={index} value={item.status}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {/* <span style={{ fontSize: '40px', marginRight: 5 }}>•</span> */}
-                  <Box sx={{ width: 10, height: 10, backgroundColor: `${item.color}`, borderRadius: '50%', mr: 1 }} />
-                  <Typography variant="body2">{item.status}</Typography>
-                </Box>
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </MenuPopover>
+          <FormControl variant="outlined" sx={{ width: '100%' }}>
+            <InputLabel id="demo-simple-select-outlined-label">Status</InputLabel>
+            <Select
+              labelId="demo-simple-select-outlined-label"
+              id="demo-simple-select-outlined"
+              value={filterStatus}
+              onChange={handleChangeStatus}
+              onClick={handleClose}
+              label="Year"
+            >
+              {Status.map((item, index) => (
+                <MenuItem key={index} value={item.status === 'All Status' ? '' : item.status}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ width: 10, height: 10, backgroundColor: `${item.color}`, borderRadius: '50%', mr: 1 }} />
+                    <Typography variant="body2">{item.status}</Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </MenuPopover>
+      )}
     </RootStyle>
   );
 }
 
-// const Status = [{color: 'red', status: 'Not started'}, 'In progress', 'On Hold', 'Ready to submit', 'Under review', 'Accepted', 'Rejected'];
 const Status = [
-  { color: 'red', status: 'Not started' },
-  { color: 'blue', status: 'In progress' },
-  { color: 'green', status: 'On Hold' },
-  { color: 'gray', status: 'Ready to submit' },
-  { color: 'cyan', status: 'Under review' },
-  { color: 'lightblue', status: 'Accepted' },
-  { color: 'yellow', status: 'Rejected' }
+  { color: '#FFDE5D', status: 'All Status' },
+  { color: 'gray', status: 'Not started' },
+  { color: '#1939B7', status: 'In progress' },
+  { color: '#B72136', status: 'Blocked/On Hold' },
+  { color: '#0C53B7', status: 'Ready to submit' },
+  { color: '#B78103', status: 'Submitted/Under review' },
+  { color: '#B72136', status: 'Rejected' },
+  { color: '#007B55', status: 'Accepted' }
 ];

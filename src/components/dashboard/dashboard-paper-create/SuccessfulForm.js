@@ -39,9 +39,9 @@ export default function SuccessfulForm({ isEdit }) {
               </Typography>
             </motion.div>
             {!isEdit ? (
-              <Typography sx={{ color: 'text.secondary' }}>New paper has been successfully saved.</Typography>
+              <Typography sx={{ color: 'text.secondary' }}>The paper has been successfully saved</Typography>
             ) : (
-              <Typography sx={{ color: 'text.secondary' }}>Paper has been successfully updated.</Typography>
+              <Typography sx={{ color: 'text.secondary' }}>The Paper has been successfully updated.</Typography>
             )}
 
             <motion.div variants={varBounceIn}>

@@ -73,9 +73,10 @@ CardTypeConference.propTypes = {
   logoURL: PropTypes.string,
   title: PropTypes.string,
   // flagURL: PropTypes.string,
-  // country: PropTypes.string,
+  country: PropTypes.string,
+  city: PropTypes.string,
   date: PropTypes.string,
-  categories: PropTypes.array,
+  topics: PropTypes.array,
   toSubmit: PropTypes.number,
   underReview: PropTypes.number,
   published: PropTypes.number
@@ -87,9 +88,10 @@ export default function CardTypeConference({
   logoURL,
   title,
   // flagURL,
-  // country,
+  country,
+  city,
   date,
-  categories,
+  topics,
   toSubmit,
   underReview,
   published
@@ -116,27 +118,28 @@ export default function CardTypeConference({
             <MoreVertIcon />
           </IconButton>
         </Box>
-        <Box m={1} />
         <Avatar alt={title} src={logoURL} className={classes.large} />
-        <Box m={1} />
+        <Box m={3} />
         <Typography variant="subtitle1" sx={{ textAlign: 'center' }}>
           {title}
         </Typography>
-        <Box m={3} />
-        {/* <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Avatar alt="Remy Sharp" src={flagURL} className={classes.small} sx={{ mr: 1 }} />
-          <Typography variant="body1">{country}</Typography>
-        </Box> */}
-        <Box m={3} />
+        <Box m={1} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          {/* <Avatar alt="Remy Sharp" src={flagURL} className={classes.small} sx={{ mr: 1 }} /> */}
+          <Typography variant="caption">
+            {country} - {city}
+          </Typography>
+        </Box>
+        <Box m={1} />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <CalendarTodayIcon sx={{ mr: 1, width: 15, height: 15 }} />
           <Typography variant="caption">{date}</Typography>
         </Box>
         <Box m={3} />
         <Box sx={{ textAlign: 'center' }}>
-          {categories.map((item, index) => (
+          {topics.map((item, index) => (
             <ChipButton key={index} variant="outlined">
-              {item}
+              {item.name}
             </ChipButton>
           ))}
         </Box>

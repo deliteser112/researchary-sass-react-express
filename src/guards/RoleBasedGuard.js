@@ -1,23 +1,49 @@
+/* eslint-disable array-callback-return */
 import PropTypes from 'prop-types';
+import { useEffect, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { Container, Alert, AlertTitle } from '@material-ui/core';
 
+import { getPaperList } from '../redux/slices/paper';
+import { useDispatch, useSelector } from '../redux/store';
+// hooks
+import useAuth from '../hooks/useAuth';
 // ----------------------------------------------------------------------
 
 RoleBasedGuard.propTypes = {
-  accessibleRoles: PropTypes.array, // Example ['admin', 'leader']
   children: PropTypes.node
 };
 
-const useCurrentRole = () => {
-  // Logic here to get current user role
-  const role = 'admin';
-  return role;
-};
+export default function RoleBasedGuard({ children }) {
+  const dispatch = useDispatch();
+  const { pathname } = useLocation();
+  const { paperId } = useParams();
+  const isEdit = pathname.includes('edit');
+  const { paperList } = useSelector((state) => state.paper);
+  const currentPaper = paperList.find((paper) => paper.id === Number(paperId));
 
-export default function RoleBasedGuard({ accessibleRoles, children }) {
-  const currentRole = useCurrentRole();
+  const { user } = useAuth();
 
-  if (!accessibleRoles.includes(currentRole)) {
+  const [accessiblePapers, setAccessiblePapers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(0);
+
+  useEffect(() => {
+    dispatch(getPaperList());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isEdit && currentPaper !== undefined) {
+      const { authors } = currentPaper;
+      const tmpAuhtorIds = [];
+      authors.map((author) => {
+        tmpAuhtorIds.push(author.id);
+      });
+      setAccessiblePapers([...tmpAuhtorIds]);
+      setCurrentUser(user.id);
+    }
+  }, [currentPaper, isEdit, user]);
+
+  if (!accessiblePapers.includes(currentUser)) {
     return (
       <Container>
         <Alert severity="error">

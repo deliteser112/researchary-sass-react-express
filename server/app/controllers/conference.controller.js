@@ -1,14 +1,18 @@
 /* eslint-disable array-callback-return */
 const multer = require('multer');
+const jwt = require('jsonwebtoken');
+
+const config = require('../config/auth.config');
+
+const JWT_SECRET = config.secret;
 
 const db = require('../models');
 
-const Team = db.team;
 const Conference = db.conference;
 const Topic = db.topic;
 const Version = db.version;
-
-const { ROLES } = db;
+const Team = db.team;
+const User = db.user;
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
@@ -45,6 +49,14 @@ exports.uploadFiles = (req, res) => {
 // ----------------------------------------------------------------------
 
 exports.createConference = (req, res) => {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(400).send([]);
+  }
+
+  const accessToken = authorization.split(' ')[1];
+  const { userId } = jwt.verify(accessToken, JWT_SECRET);
+
   const { detailForm, researchTopicsForm, conferenceVersionForm } = req.body;
 
   const { description, name, filename, publisher, abbreviation, score } = detailForm;
@@ -100,6 +112,22 @@ exports.createConference = (req, res) => {
     const teamTagIds = definedTags.concat(newTagIds);
 
     conference.setTopics(teamTagIds);
+
+    if (newTagIds.length > 0) {
+      User.findOne({ where: { id: userId } }).then(async (user) => {
+        const tmpTagIds = await user.getTopics();
+        const oldTagIds = [];
+        tmpTagIds.map((tag) => {
+          const { id, isActive } = tag;
+          if (isActive) {
+            oldTagIds.push(id);
+          }
+        });
+
+        const tmpNewIds = oldTagIds.concat(newTagIds);
+        user.setTopics(tmpNewIds);
+      });
+    }
 
     versions.map(async (version) => {
       const { year, country, city, startDate, endDate, submissionDate, submissionLink, conferenceSite, isOnline } =
@@ -166,14 +194,29 @@ async function getConferences(conferences) {
       const teamData = await conference.getTeams();
 
       topicData.map((topic) => {
-        topics.push(topic.name);
+        const { id, name, isActive } = topic;
+        if (isActive) {
+          topics.push({ id, name });
+        }
       });
 
-      teamData.map((team) => {
+      teamData.map(async (team) => {
         const { id, name, logoURL, description, affiliation } = team;
+        const topics = await team.getTopics().then((topicDatas) => {
+          const resTopics = [];
+          topicDatas.map((topic) => {
+            const { id, name, isActive } = topic;
+            if (isActive) {
+              resTopics.push({ id, name });
+            }
+          });
+          return resTopics;
+        });
+
         teams.push({
           id,
           name,
+          topics,
           logoURL,
           description,
           affiliation
@@ -234,10 +277,75 @@ async function getConferences(conferences) {
 }
 
 // ----------------------------------------------------------------------
+// Getting the topics list by team
+// ----------------------------------------------------------------------
+
+exports.getConferenceTopicsByTeam = (req, res) => {
+  Team.findAll().then(async (teams) => {
+    const AllTopics = await getTopicsByTeam(teams);
+    res.status(200).send(AllTopics);
+  });
+};
+
+async function getTopicsByTeam(teams) {
+  const asyncRes = await Promise.all(
+    teams.map(async (team) => {
+      const topics = await team.getTopics();
+      const tmpTopic = [];
+      topics.map((topic) => {
+        const { id, name, isActive } = topic;
+        if (isActive) {
+          tmpTopic.push({ id, name });
+        }
+      });
+      const data = {
+        id: team.id,
+        topics: tmpTopic
+      };
+      return data;
+    })
+  );
+  return asyncRes;
+}
+
+// ----------------------------------------------------------------------
+// Getting the topics list by team
+// ----------------------------------------------------------------------
+
+exports.getUserTopics = (req, res) => {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(400).send([]);
+  }
+
+  const accessToken = authorization.split(' ')[1];
+  const { userId } = jwt.verify(accessToken, JWT_SECRET);
+  User.findOne({ where: { id: userId } }).then(async (user) => {
+    const userTopics = await user.getTopics();
+    const resTopics = [];
+    userTopics.map((topic) => {
+      const { id, name, isActive } = topic;
+      if (isActive) {
+        resTopics.push({ id, name });
+      }
+    });
+    res.status(200).send(resTopics);
+  });
+};
+
+// ----------------------------------------------------------------------
 // Update Conference
 // ----------------------------------------------------------------------
 
 exports.updateConference = (req, res) => {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(400).send([]);
+  }
+
+  const accessToken = authorization.split(' ')[1];
+  const { userId } = jwt.verify(accessToken, JWT_SECRET);
+
   const { id, detailForm, researchTopicsForm, conferenceVersionForm } = req.body;
 
   const { description, name, filename, publisher, abbreviation, score } = detailForm;
@@ -291,6 +399,22 @@ exports.updateConference = (req, res) => {
     const teamTagIds = definedTags.concat(newTagIds);
 
     conference.setTopics(teamTagIds);
+
+    if (newTagIds.length > 0) {
+      User.findOne({ where: { id: userId } }).then(async (user) => {
+        const tmpTagIds = await user.getTopics();
+        const oldTagIds = [];
+        tmpTagIds.map((tag) => {
+          const { id, isActive } = tag;
+          if (isActive) {
+            oldTagIds.push(id);
+          }
+        });
+
+        const tmpNewIds = oldTagIds.concat(newTagIds);
+        user.setTopics(tmpNewIds);
+      });
+    }
 
     await Version.destroy({ where: { conferenceId: id } });
 

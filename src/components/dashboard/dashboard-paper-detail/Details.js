@@ -29,25 +29,27 @@ const ChipButton = withStyles((theme) => ({
 
 Details.propTypes = {
   currentPaper: PropTypes.object,
+  propTopics: PropTypes.array,
   statusProps: PropTypes.func
 };
 
-export default function Details({ currentPaper, statusProps }) {
+export default function Details({ currentPaper, propTopics, statusProps }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [authors, setAuthors] = useState([]);
-  const [topics, setTopics] = useState([]);
   const [paperId, setPaperId] = useState(0);
+
+  const [currentStatus, setCurrentStatus] = useState('');
   useEffect(() => {
     if (currentPaper !== undefined) {
-      const { id, title, description, authors, topics } = currentPaper;
+      const { id, title, description, authors, status } = currentPaper;
       setPaperId(id);
       setTitle(title);
+      setCurrentStatus(status);
       const htmlString = description;
       const plainString = htmlString.replace(/<[^>]+>/g, '');
       setDescription(plainString);
       setAuthors([...authors]);
-      setTopics([...topics]);
     }
   }, [currentPaper]);
 
@@ -67,7 +69,12 @@ export default function Details({ currentPaper, statusProps }) {
             Paper details
           </Typography>
           <Typography color="textSecondary" gutterBottom>
-            <MoreMenu onDelete={() => handleDeleteUser(paperId)} title={title} statusProps={handleStatus} />
+            <MoreMenu
+              onDelete={() => handleDeleteUser(paperId)}
+              paperId={paperId}
+              statusProps={handleStatus}
+              currentStatus={currentStatus}
+            />
           </Typography>
         </Box>
         <Divider />
@@ -83,9 +90,9 @@ export default function Details({ currentPaper, statusProps }) {
         <Box m={2} />
         <Typography variant="caption">RESEARCH AREAS</Typography>
         <Box m={1} />
-        {topics.map((item, index) => (
+        {propTopics.map((item, index) => (
           <ChipButton key={index} variant="outlined">
-            {item}
+            {item.name}
           </ChipButton>
         ))}
         <Box m={2} />

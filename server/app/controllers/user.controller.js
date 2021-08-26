@@ -1,6 +1,4 @@
-/* eslint-disable no-continue */
 /* eslint-disable consistent-return */
-/* eslint-disable no-await-in-loop */
 /* eslint-disable array-callback-return */
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
@@ -19,7 +17,6 @@ const storage = multer.diskStorage({
     cb(null, '../public/static/uploads');
   },
   filename(req, file, cb) {
-    console.log(file);
     cb(null, `${Date.now()}-${file.originalname}`);
   }
 });

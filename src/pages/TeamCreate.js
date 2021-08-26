@@ -32,8 +32,10 @@ import useTeam from '../hooks/useTeam';
 
 // redux
 import { getUsers } from '../redux/slices/user';
-import { getTopics } from '../redux/slices/paper';
+import { getTopics, getRecommandTopics } from '../redux/slices/paper';
 import { getTeamList } from '../redux/slices/team';
+import { getUserTopics } from '../redux/slices/conference';
+
 import { useDispatch, useSelector } from '../redux/store';
 
 // components
@@ -129,6 +131,7 @@ export default function TeamCreate() {
 
   const { users } = useSelector((state) => state.user);
   const { topics } = useSelector((state) => state.paper);
+  const { userTopics } = useSelector((state) => state.conference);
   const { teamList } = useSelector((state) => state.team);
 
   const { pathname } = useLocation();
@@ -144,10 +147,14 @@ export default function TeamCreate() {
 
   const [teamData, setTeamData] = useState({});
 
+  const [validation, setValidation] = useState({ name: false });
+
   useEffect(() => {
     dispatch(getUsers());
     dispatch(getTeamList());
+    dispatch(getUserTopics());
     dispatch(getTopics());
+    dispatch(getRecommandTopics());
   }, [dispatch]);
 
   const isStepSaveDraft = (step) => step === 2;
@@ -160,9 +167,16 @@ export default function TeamCreate() {
       newSkipped = new Set(newSkipped.values());
       newSkipped.delete(activeStep);
     }
-
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
     setSaveInDraft(newSkipped);
+
+    if (teamData.detailForm !== undefined) {
+      if (teamData.detailForm.name.length > 0) {
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      } else {
+        setValidation({ name: true });
+        setActiveStep((prevActiveStep) => prevActiveStep);
+      }
+    }
 
     if (activeStep === 2) {
       if (!isEdit) {
@@ -229,11 +243,17 @@ export default function TeamCreate() {
                 <Divider />
                 <Box m={4} />
                 {activeStep === 0 && (
-                  <DetailForm detailFormProps={handleDetailForm} currentTeam={currentTeam} isEdit={isEdit} />
+                  <DetailForm
+                    detailFormProps={handleDetailForm}
+                    validation={validation}
+                    currentTeam={currentTeam}
+                    isEdit={isEdit}
+                  />
                 )}
                 {activeStep === 1 && (
                   <ResearchTopicsForm
                     topicsFormProps={handleResearchTopics}
+                    recommandTopics={userTopics}
                     currentTeam={currentTeam}
                     topics={topics}
                     isEdit={isEdit}

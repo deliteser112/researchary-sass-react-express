@@ -11,9 +11,11 @@ const initialState = {
   paperList: [],
   publishedList: [],
   topics: [],
+  recommandTopics: [],
   taskList: [],
   fileList: [],
-  timelineList: []
+  timelineList: [],
+  commentList: []
 };
 
 const slice = createSlice({
@@ -70,11 +72,23 @@ const slice = createSlice({
       state.isLoading = false;
       state.topics = action.payload;
     },
+    // GET RECOMMAND TOPICS
+    getRecommandTopicsSuccess(state, action) {
+      state.isLoading = false;
+      state.recommandTopics = action.payload;
+    },
+
     // GET MANAGE TASKS
     getTaskListSuccess(state, action) {
       state.isLoading = false;
       state.taskList = action.payload;
     },
+    // GET MANAGE COMMENTS
+    getCommentListSuccess(state, action) {
+      state.isLoading = false;
+      state.commentList = action.payload;
+    },
+
     // GET MANAGE FILES
     getFileListSuccess(state, action) {
       state.isLoading = false;
@@ -104,6 +118,20 @@ export function getTopics() {
     try {
       const response = await axios.get('/api/paper/topics');
       dispatch(slice.actions.getTopicsSuccess(response.data.topics));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+
+// ----------------------------------------------------------------------
+
+export function getRecommandTopics() {
+  return async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get('/api/paper/recommand-topics');
+      dispatch(slice.actions.getRecommandTopicsSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
@@ -168,6 +196,19 @@ export function getFileList() {
 
 // ----------------------------------------------------------------------
 
+export function getCommentList() {
+  return async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get('/api/paper/paper-comments');
+      dispatch(slice.actions.getCommentListSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+// ----------------------------------------------------------------------
+
 export function getTimelineList() {
   return async (dispatch) => {
     dispatch(slice.actions.startLoading());
@@ -208,6 +249,18 @@ export function createTask({ taskData }) {
   };
 }
 
+export function createComment({ commentData }) {
+  const data = commentData;
+  return async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      await axios.post('/api/paper/create-comment', data);
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+
 // ----------------------------------------------------------------------
 // Update
 // ----------------------------------------------------------------------
@@ -242,6 +295,33 @@ export function updateStatus({ statusData }) {
     dispatch(slice.actions.startLoading());
     try {
       await axios.post('/api/paper/update-status', data);
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+
+export function setAuthor({ data }) {
+  return async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      await axios.post('/api/paper/update-authors', data);
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+
+// ----------------------------------------------------------------------
+// Delete part
+// ----------------------------------------------------------------------
+
+export function deletePaperPost({ pId }) {
+  const data = pId;
+  return async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      await axios.post('/api/paper/delete-paper', data);
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

@@ -101,8 +101,9 @@ export default function TimelineComponent({ currentPaper }) {
                     (item.status === 'In progress' && 'secondary') ||
                     (item.status === 'Blocked/On Hold' && 'error') ||
                     (item.status === 'Ready to submit' && 'info') ||
-                    (item.status === 'Under review' && 'warning') ||
+                    (item.status === 'Submitted/Under review' && 'warning') ||
                     (item.status === 'Accepted' && 'primary') ||
+                    (item.status === 'Rejected' && 'error') ||
                     'success'
                   }
                 >

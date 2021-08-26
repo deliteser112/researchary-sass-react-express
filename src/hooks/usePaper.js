@@ -2,7 +2,7 @@
 import { useDispatch } from 'react-redux';
 
 // redux
-import { createPaper, createTask, updatePaper, updateTask, updateStatus } from '../redux/slices/paper';
+import { createPaper, createTask, createComment, updatePaper, updateTask, updateStatus, deletePaperPost, setAuthor } from '../redux/slices/paper';
 
 // ----------------------------------------------------------------------
 
@@ -13,10 +13,16 @@ export default function usePaper() {
     // --------------  Creating part ---------------------
     createPaper: ({ paperData }) => dispatch(createPaper({ paperData })),
     createTask: ({ taskData }) => dispatch(createTask({ taskData })),
+    createComment: ({ commentData }) => dispatch(createComment({ commentData })),
   
     // --------------  Update Paper ---------------------
     updatePaper: ({ updateData }) => dispatch(updatePaper({ updateData })),
     updateTask: ({ updateData }) => dispatch(updateTask({ updateData })),
-    updateStatus: ({ statusData }) => dispatch(updateStatus({ statusData }))
+    updateStatus: ({ statusData }) => dispatch(updateStatus({ statusData })),
+
+    setAuthor: ({ data }) => dispatch(setAuthor({ data })),
+     
+    // --------------  Delete Paper ---------------------
+    deletePaperPost: ({ pId }) => dispatch(deletePaperPost({ pId }))
   };
 }

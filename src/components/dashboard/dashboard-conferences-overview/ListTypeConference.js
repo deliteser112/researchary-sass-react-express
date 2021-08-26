@@ -1,5 +1,6 @@
+import PropTypes from 'prop-types';
 // import { filter } from 'lodash';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 // material
 import { withStyles } from '@material-ui/core/styles';
 import {
@@ -17,16 +18,16 @@ import {
   Rating
 } from '@material-ui/core';
 // redux
-import { useDispatch, useSelector } from '../../../redux/store';
-import { getTeamList, deleteTeam } from '../../../redux/slices/team';
+import { useDispatch } from '../../../redux/store';
+import { deleteConference } from '../../../redux/slices/conference';
 
 // components
 import Scrollbar from '../../Scrollbar';
 import SearchNotFound from '../../SearchNotFound';
 
-import TeamListHead from './ConferenceListHead';
-import TeamListToolbar from './ConferenceListToolbar';
-import TeamMoreMenu from './ConferenceTeamMoreMenu';
+import ConferenceListHead from './ConferenceListHead';
+import ConferenceListToolbar from './ConferenceListToolbar';
+import ConferenceMoreMenu from './ConferenceMoreMenu';
 
 // ----------------------------------------------------------------------
 
@@ -48,6 +49,7 @@ const TABLE_HEAD = [
   { id: 'logo', label: 'Logo', alignRight: false },
   { id: 'name', label: 'Conference Name', alignRight: false },
   { id: 'topics', label: 'Research Areas', alignRight: false },
+  { id: 'country', label: 'Country', alignRight: false },
   { id: 'rate', label: 'Rate', alignRight: false },
   { id: 'dueDate', label: 'Due Date', alignRight: false },
   { id: '' }
@@ -79,25 +81,51 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return array.filter((_team) => _team.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return array.filter((_conf) => _conf.title.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function ListTypeTeam() {
+function applySortFilterByCountry(array, comparator, query) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  if (query) {
+    return array.filter((_conf) => _conf.location.country.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+  }
+  return stabilizedThis.map((el) => el[0]);
+}
+
+function applySortFilterByRating(array, comparator, query) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  if (query) {
+    return array.filter((_conf) => _conf.rate.toString().toLowerCase().indexOf(query.toLowerCase()) !== -1);
+  }
+  return stabilizedThis.map((el) => el[0]);
+}
+
+ListTypeConference.propTypes = {
+  conferences: PropTypes.array
+};
+
+export default function ListTypeConference({ conferences }) {
   const dispatch = useDispatch();
-  // const { conferenceList } = useSelector((state) => state.team);
-  const { conferenceList } = useSelector((state) => state.conference);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
   const [selected, setSelected] = useState([]);
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('title');
   const [filterName, setFilterName] = useState('');
+  const [filterCountry, setFilterCountry] = useState(null);
+  const [filterRating, setFilterRating] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  useEffect(() => {
-    dispatch(getTeamList());
-  }, [dispatch]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -107,7 +135,7 @@ export default function ListTypeTeam() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = conferenceList.map((n) => n.id);
+      const newSelecteds = conferences.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -142,35 +170,57 @@ export default function ListTypeTeam() {
     setFilterName(event.target.value);
   };
 
-  const handleDeleteTeam = (teamId) => {
-    dispatch(deleteTeam(teamId));
+  const handleFilterByCountry = (event) => {
+    setFilterCountry(event);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - conferenceList.length) : 0;
+  const handleFilterByRating = (event) => {
+    setFilterRating(event.target.value);
+  };
 
-  const filteredUsers = applySortFilter(conferenceList, getComparator(order, orderBy), filterName);
+  const handleDeleteConference = (confId) => {
+    dispatch(deleteConference(confId));
+  };
 
-  const isTeamNotFound = filteredUsers.length === 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - conferences.length) : 0;
+
+  const filteredUsers = applySortFilter(conferences, getComparator(order, orderBy), filterName);
+  const filteredCountry = applySortFilterByCountry(
+    filteredUsers,
+    getComparator(order, orderBy),
+    filterCountry === null ? null : filterCountry.name
+  );
+  const filteredRating = applySortFilterByRating(filteredCountry, getComparator(order, orderBy), filterRating);
+
+  const isConferenceNotFound = filteredUsers.length === 0;
 
   return (
     <Card>
-      <TeamListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+      <ConferenceListToolbar
+        numSelected={selected.length}
+        filterName={filterName}
+        filterCountry={filterCountry}
+        filterRating={filterRating}
+        onFilterName={handleFilterByName}
+        onFilterCountry={handleFilterByCountry}
+        onFilterRating={handleFilterByRating}
+      />
 
       <Scrollbar>
         <TableContainer sx={{ minWidth: 800 }}>
           <Table>
-            <TeamListHead
+            <ConferenceListHead
               order={order}
               orderBy={orderBy}
               headLabel={TABLE_HEAD}
-              rowCount={conferenceList.length}
+              rowCount={conferences.length}
               numSelected={selected.length}
               onRequestSort={handleRequestSort}
               onSelectAllClick={handleSelectAllClick}
             />
             <TableBody>
-              {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                const { id, name, logoURL, dueDate, topics, score } = row;
+              {filteredRating.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                const { id, title, logoURL, dueDate, location, topics, rate } = row;
                 const isItemSelected = selected.indexOf(id) !== -1;
 
                 return (
@@ -189,25 +239,28 @@ export default function ListTypeTeam() {
                       <Avatar alt={logoURL} src={logoURL} />
                     </TableCell>
                     <TableCell align="left" sx={{ maxWidth: '300px' }}>
-                      {name}
+                      {title}
                     </TableCell>
                     <TableCell align="left">
                       <Box sx={{ textAlign: 'left' }}>
                         {topics.map((item, index) => (
                           <ChipButton key={index} variant="outlined">
-                            {item}
+                            {item.name}
                           </ChipButton>
                         ))}
                       </Box>
                     </TableCell>
                     <TableCell align="left" sx={{ maxWidth: '300px' }}>
-                      <Rating name="read-only" size="small" max={3} value={score !== undefined ? score : 0} readOnly />
+                      {location.country} - {location.city}
+                    </TableCell>
+                    <TableCell align="left" sx={{ maxWidth: '300px' }}>
+                      <Rating name="read-only" size="small" max={3} value={rate !== undefined ? rate : 0} readOnly />
                     </TableCell>
                     <TableCell align="left" sx={{ maxWidth: '300px' }}>
                       {dueDate}
                     </TableCell>
                     <TableCell align="right">
-                      <TeamMoreMenu onDelete={() => handleDeleteTeam(id)} confId={id} />
+                      <ConferenceMoreMenu onDelete={() => handleDeleteConference(id)} confId={id} />
                     </TableCell>
                   </TableRow>
                 );
@@ -218,7 +271,7 @@ export default function ListTypeTeam() {
                 </TableRow>
               )}
             </TableBody>
-            {isTeamNotFound && (
+            {isConferenceNotFound && (
               <TableBody>
                 <TableRow>
                   <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
@@ -234,7 +287,7 @@ export default function ListTypeTeam() {
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={conferenceList.length}
+        count={conferences.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

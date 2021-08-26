@@ -15,20 +15,24 @@ const CLOUDINARY_URL = '/api/team/upload-logo';
 // ----------------------------------------------------------------------
 
 DetailForm.propTypes = {
+  validation: PropTypes.object,
   currentTeam: PropTypes.object,
   isEdit: PropTypes.bool,
   detailFormProps: PropTypes.func
 };
 
-export default function DetailForm({ currentTeam, isEdit, detailFormProps }) {
+export default function DetailForm({ validation, currentTeam, isEdit, detailFormProps }) {
   const [file, setFile] = useState(null);
 
-  const [name, setName] = useState('New Team');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [affiliation, setAffiliation] = useState('');
   const [filename, setFilename] = useState('');
 
   const [detailFormData, setDetailFormData] = useState({});
+
+  const [hasName, setHasName] = useState(false);
+  const [hasNameErrorText, setHasNameErrorText] = useState('');
 
   useEffect(() => {
     if (isEdit && currentTeam !== undefined) {
@@ -57,7 +61,21 @@ export default function DetailForm({ currentTeam, isEdit, detailFormProps }) {
     detailFormProps(detailFormData);
   }, [detailFormData]);
 
+  useEffect(() => {
+    if (validation.name) {
+      setHasName(true);
+      setHasNameErrorText('The name is required!');
+    }
+  }, [validation]);
+
   const handleChangeName = (e) => {
+    if (e.target.value.length === 0) {
+      setHasName(true);
+      setHasNameErrorText('The name is required!');
+    } else {
+      setHasName(false);
+      setHasNameErrorText('');
+    }
     setName(e.target.value);
   };
 
@@ -117,6 +135,20 @@ export default function DetailForm({ currentTeam, isEdit, detailFormProps }) {
       </Box>
       <Grid item xs={12}>
         <TextField
+          error={hasName}
+          helperText={hasNameErrorText}
+          fullWidth
+          value={name}
+          onChange={handleChangeName}
+          label="Team name"
+          placeholder="Type the team name..."
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          sx={{ display: 'none' }}
+          error={hasName}
+          helperText={hasNameErrorText}
           fullWidth
           label="Team name"
           value={name}
@@ -133,7 +165,7 @@ export default function DetailForm({ currentTeam, isEdit, detailFormProps }) {
           placeholder="Type the abstract or some information about the team..."
         />
       </Grid>
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={12}>
         <TextField
           fullWidth
           label="Affiliation"

@@ -8,7 +8,9 @@ import axios from '../../utils/axios';
 const initialState = {
   isLoading: false,
   error: false,
-  conferenceList: []
+  conferenceList: [],
+  teamTopics: [],
+  userTopics: []
 };
 
 const slice = createSlice({
@@ -26,15 +28,25 @@ const slice = createSlice({
       state.error = action.payload;
     },
 
-    // DELETE TEAM
+    // DELETE CONFERENCE
     deleteConference(state, action) {
       const deleteConference = filter(state.conferenceList, (conference) => conference.id !== action.payload);
       state.conferenceList = deleteConference;
     },
-    // GET MANAGE TEAMS
+    // GET MANAGE Conferencelist
     getConferenceListSuccess(state, action) {
       state.isLoading = false;
       state.conferenceList = action.payload;
+    },
+    // GET MANAGE CONFERENCE TOPICS
+    getConferenceTopicListSuccess(state, action) {
+      state.isLoading = false;
+      state.teamTopics = action.payload;
+    },
+    // GET MANAGE USER TOPICS
+    getUserTopicListSuccess(state, action) {
+      state.isLoading = false;
+      state.userTopics = action.payload;
     }
   }
 });
@@ -55,6 +67,34 @@ export function getConferenceList() {
     try {
       const response = await axios.get('/api/conference/all-conferences');
       dispatch(slice.actions.getConferenceListSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+
+// ----------------------------------------------------------------------
+
+export function getConferenceTopicsByTeam() {
+  return async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get('/api/conference/topics-by-team');
+      dispatch(slice.actions.getConferenceTopicListSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+
+// ----------------------------------------------------------------------
+
+export function getUserTopics() {
+  return async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get('/api/conference/topics-by-user');
+      dispatch(slice.actions.getUserTopicListSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
@@ -86,7 +126,6 @@ export function updateConference({ updateData }) {
   return async (dispatch) => {
     dispatch(slice.actions.startLoading());
     try {
-      console.log('Here is redux', data);
       await axios.post('/api/conference/update-conference', data);
     } catch (error) {
       dispatch(slice.actions.hasError(error));

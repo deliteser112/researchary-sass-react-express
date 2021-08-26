@@ -82,7 +82,7 @@ export default function LoginForm() {
     <FormikProvider value={formik}>
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Stack spacing={3}>
-          {errors.afterSubmit && <Alert severity="error">{errors.afterSubmit}</Alert>}
+          {errors.afterSubmit && <Alert severity="error">Incorrect username/password. Please retry.</Alert>}
 
           <TextField
             fullWidth

@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/exhaustive-deps */
 import PropTypes from 'prop-types';
 
@@ -7,6 +8,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { TextField, Box, Button, Typography, Autocomplete } from '@material-ui/core';
 
 import TeamMemberTable from './TeamMemberTable';
+import HasErrorDialog from '../../HasErrorDialog';
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -29,6 +31,9 @@ export default function TeamMemberForm({ currentTeam, isEdit, teamMembers, teamM
   const [members, setMembers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
 
+  const [isAdded, setIsAdded] = useState(false);
+  const [errorContent, setErrorContent] = useState('');
+
   useEffect(() => {
     teamMembersFormProps([]);
   }, []);
@@ -37,18 +42,43 @@ export default function TeamMemberForm({ currentTeam, isEdit, teamMembers, teamM
     if (isEdit) {
       const { members } = currentTeam;
       setMembers([...members]);
-      setSelectedMembers([...members]);
       teamMembersFormProps([...members]);
     }
   }, [currentTeam, isEdit]);
 
-  const handleMembers = (author) => {
-    teamMembersFormProps(author);
-    setSelectedMembers(author);
+  const handleHasError = () => {
+    setIsAdded(false);
+  };
+
+  const handleMembers = (member) => {
+    teamMembersFormProps(member);
+    setSelectedMembers(member);
   };
 
   const handleClickAddMembers = () => {
-    setMembers(selectedMembers);
+    const oldMembers = members;
+    let isAdded = false;
+    if (selectedMembers !== null && selectedMembers.email !== undefined) {
+      members.map((member) => {
+        if (member.email === selectedMembers.email) {
+          isAdded = true;
+        }
+      });
+
+      if (!isAdded) {
+        oldMembers.push(selectedMembers);
+        setMembers([...oldMembers]);
+        teamMembersFormProps([...oldMembers]);
+      } else {
+        setIsAdded(true);
+        setErrorContent('This member was already added!');
+      }
+    }
+  };
+
+  const handleDeleteProps = (newMembers) => {
+    teamMembersFormProps([...newMembers]);
+    setSelectedMembers([...newMembers]);
   };
 
   return (
@@ -59,13 +89,11 @@ export default function TeamMemberForm({ currentTeam, isEdit, teamMembers, teamM
       <Box m={3} />
       <Box sx={{ display: 'block', my: 2, [theme.breakpoints.up('md')]: { display: 'flex', alignItems: 'center' } }}>
         <Autocomplete
-          multiple
           id="tags-outlined"
           options={teamMembers}
           getOptionLabel={(option) => option.email}
-          value={[...selectedMembers]}
           isOptionEqualToValue={(option, value) => option.id === value.id}
-          onChange={(event, author) => handleMembers(author)}
+          onChange={(event, member) => handleMembers(member)}
           filterSelectedOptions
           sx={{ width: '100%' }}
           renderInput={(params) => (
@@ -88,7 +116,12 @@ export default function TeamMemberForm({ currentTeam, isEdit, teamMembers, teamM
           Add members
         </Button>
       </Box>
-      {members.length > 0 && <TeamMemberTable members={members} />}
+      {members.length > 0 && (
+        <>
+          <TeamMemberTable members={members} deleteProps={handleDeleteProps} />
+          <HasErrorDialog errorContent={errorContent} hasError={isAdded} errorProps={handleHasError} />
+        </>
+      )}
     </Box>
   );
 }

@@ -87,7 +87,9 @@ export default function Files({ currentPaper }) {
   }, [currentPaper, fileList]);
 
   const handleUploadListView = () => {
-    dispatch(getFileList());
+    setTimeout(() => {
+      dispatch(getFileList());
+    }, 1000);
   };
 
   return (

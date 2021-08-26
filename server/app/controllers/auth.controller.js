@@ -1,6 +1,6 @@
-/* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
-/* eslint-disable import/order */
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const db = require('../models');
 const config = require('../config/auth.config');
 
@@ -9,9 +9,6 @@ const config = require('../config/auth.config');
 const User = db.user;
 
 const { ROLES } = db;
-
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 
 const JWT_SECRET = config.secret;
 const JWT_EXPIRES_IN = 86400;
@@ -33,16 +30,17 @@ exports.signup = (req, res) => {
         expiresIn: JWT_EXPIRES_IN
       });
 
+      User.update({ photoURL: `/mock-images/avatars/avatar_${userData.id}.jpg` }, { where: { id: userData.id } });
+
       const user = {
         id: userData.id,
         firstname: userData.firstname,
         lastname: userData.lastname,
         email: userData.email,
-        photoURL: userData.photoURL,
+        photoURL: `/mock-images/avatars/avatar_${userData.id}.jpg`,
         roles: ROLES[role - 1].toUpperCase()
       };
 
-      User.update({ photoURL: `/mock-images/avatars/avatar_${userData.id}.jpg` }, { where: { id: userData.id } });
       res.status(200).send({ accessToken, user });
     })
     .catch((err) => {

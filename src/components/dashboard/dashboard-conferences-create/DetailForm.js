@@ -15,15 +15,16 @@ const CLOUDINARY_URL = '/api/conference/upload-logo';
 // ----------------------------------------------------------------------
 
 DetailForm.propTypes = {
+  validation: PropTypes.object,
   currentConference: PropTypes.object,
   isEdit: PropTypes.bool,
   detailFormProps: PropTypes.func
 };
 
-export default function DetailForm({ currentConference, isEdit, detailFormProps }) {
+export default function DetailForm({ validation, currentConference, isEdit, detailFormProps }) {
   const [file, setFile] = useState(null);
 
-  const [name, setName] = useState('New Conference');
+  const [name, setName] = useState('');
   const [abbreviation, setAbbreviation] = useState('');
   const [description, setDescription] = useState('');
   const [publisher, setPublisher] = useState('');
@@ -31,6 +32,12 @@ export default function DetailForm({ currentConference, isEdit, detailFormProps 
   const [filename, setFilename] = useState('');
 
   const [detailFormData, setDetailFormData] = useState({});
+
+  const [hasName, setHasName] = useState(false);
+  const [hasNameErrorText, setHasNameErrorText] = useState('');
+
+  const [hasAbb, setHasAbb] = useState(false);
+  const [hasAbbErrorText, setHasAbbErrorText] = useState('');
 
   useEffect(() => {
     if (isEdit && currentConference !== undefined) {
@@ -63,7 +70,24 @@ export default function DetailForm({ currentConference, isEdit, detailFormProps 
     detailFormProps(detailFormData);
   }, [detailFormData]);
 
+  useEffect(() => {
+    if (validation.name) {
+      setHasName(true);
+      setHasNameErrorText('The name is required!');
+    } else if (validation.zbbreviation) {
+      setHasAbb(true);
+      setHasAbbErrorText('The abbreviation is required!');
+    }
+  }, [validation]);
+
   const handleChangeName = (e) => {
+    if (e.target.value.length === 0) {
+      setHasName(true);
+      setHasNameErrorText('The name is required!');
+    } else {
+      setHasName(false);
+      setHasNameErrorText('');
+    }
     setName(e.target.value);
   };
 
@@ -72,6 +96,13 @@ export default function DetailForm({ currentConference, isEdit, detailFormProps 
   };
 
   const handleChangeAbbreviation = (e) => {
+    if (e.target.value.length === 0) {
+      setHasAbb(true);
+      setHasAbbErrorText('The abbreviation is required!');
+    } else {
+      setHasAbb(false);
+      setHasAbbErrorText('');
+    }
     setAbbreviation(e.target.value);
   };
 
@@ -126,6 +157,8 @@ export default function DetailForm({ currentConference, isEdit, detailFormProps 
       </Box>
       <Grid item xs={12}>
         <TextField
+          error={hasName}
+          helperText={hasNameErrorText}
           fullWidth
           label="Conference Name"
           value={name}
@@ -135,6 +168,8 @@ export default function DetailForm({ currentConference, isEdit, detailFormProps 
       </Grid>
       <Grid item xs={12} md={6}>
         <TextField
+          error={hasAbb}
+          helperText={hasAbbErrorText}
           placeholder="Name abbreviation e.g. ICSE"
           fullWidth
           label="Conference Name abbreviation"

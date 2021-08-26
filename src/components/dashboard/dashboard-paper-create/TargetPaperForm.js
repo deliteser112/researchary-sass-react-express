@@ -52,6 +52,8 @@ export default function TargetPaperForm({ currentPaper, isEdit, conference, targ
   const [value, setValue] = useState(0);
   const [target, setTarget] = useState(0);
 
+  const [confTitle, setConfTitle] = useState('');
+
   const theme = useTheme();
 
   useEffect(() => {
@@ -60,6 +62,10 @@ export default function TargetPaperForm({ currentPaper, isEdit, conference, targ
       setTarget(target);
     }
   }, [currentPaper, isEdit]);
+
+  useEffect(() => {
+    setConfTitle(`Conferences (${conference.length})`);
+  }, [conference]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -72,9 +78,9 @@ export default function TargetPaperForm({ currentPaper, isEdit, conference, targ
   return (
     <Box sx={{ width: '100%', padding: theme.spacing(0) }}>
       <Tabs value={value} onChange={handleChange} aria-label="basic tabs example" centered>
-        <Tab label="Conferences (3)" {...a11yProps(0)} />
-        <Tab label="Workshops (2)" {...a11yProps(1)} />
-        <Tab label="Journals (1)" {...a11yProps(2)} />
+        <Tab label={confTitle} {...a11yProps(0)} />
+        <Tab label="Workshops (0)" {...a11yProps(1)} />
+        <Tab label="Journals (0)" {...a11yProps(2)} />
       </Tabs>
       <TabPanel value={value} index={0}>
         <ConferneceTable target={target.id} isEdit={isEdit} conferenceTable={conference} dataProps={handleConference} />

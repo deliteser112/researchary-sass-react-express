@@ -51,6 +51,7 @@ function initial() {
     firstname: 'Zakwan',
     lastname: 'Jaroucheh',
     email: 'admin@researchary.com',
+    photoURL: '/mock-images/avatars/avatar_1.jpg',
     roleId: 1,
     password: bcrypt.hashSync('root', 8),
     unHashedPassword: 'root'
@@ -78,6 +79,7 @@ require('./app/routes/user.routes')(app);
 require('./app/routes/paper.routes')(app);
 require('./app/routes/task.routes')(app);
 require('./app/routes/file.routes')(app);
+require('./app/routes/comment.routes')(app);
 require('./app/routes/team.routes')(app);
 require('./app/routes/conference.routes')(app);
 

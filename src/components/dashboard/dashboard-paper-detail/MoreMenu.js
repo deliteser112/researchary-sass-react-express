@@ -1,7 +1,7 @@
+/* eslint-disable array-callback-return */
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
-import { paramCase } from 'change-case';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import editFill from '@iconify/icons-eva/edit-fill';
 import { Link as RouterLink } from 'react-router-dom';
 import trash2Outline from '@iconify/icons-eva/trash-2-outline';
@@ -16,12 +16,25 @@ import { PATH_DASHBOARD } from '../../../routes/paths';
 MoreMenu.propTypes = {
   statusProps: PropTypes.func,
   onDelete: PropTypes.func,
-  title: PropTypes.string
+  paperId: PropTypes.number,
+  currentStatus: PropTypes.string
 };
 
-export default function MoreMenu({ onDelete, title, statusProps }) {
+export default function MoreMenu({ onDelete, paperId, currentStatus, statusProps }) {
   const ref = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
+
+  const [statuses, setStatuses] = useState([]);
+
+  useEffect(() => {
+    if (currentStatus.length > 0) {
+      possibleStatus.map((pStatus) => {
+        if (pStatus[currentStatus] !== undefined) {
+          setStatuses([...pStatus[currentStatus]]);
+        }
+      });
+    }
+  }, [currentStatus]);
 
   const handleClickStatus = (statusId) => {
     statusProps(statusId);
@@ -44,7 +57,7 @@ export default function MoreMenu({ onDelete, title, statusProps }) {
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem component={RouterLink} to={`${PATH_DASHBOARD.papers.root}/${paramCase(title)}/edit`}>
+        <MenuItem component={RouterLink} to={`${PATH_DASHBOARD.papers.root}/${paperId}/edit`}>
           <ListItemIcon>
             <Icon icon={editFill} width={24} height={24} />
           </ListItemIcon>
@@ -54,13 +67,13 @@ export default function MoreMenu({ onDelete, title, statusProps }) {
           <MenuItem
             key={index}
             onClick={() => {
-              handleClickStatus(index);
+              handleClickStatus(status.id);
             }}
           >
             <ListItemIcon>
               <HelpOutlineIcon sx={{ width: 15, height: 15 }} />
             </ListItemIcon>
-            <ListItemText primary={status} primaryTypographyProps={{ variant: 'body2' }} />
+            <ListItemText primary={status.value} primaryTypographyProps={{ variant: 'body2' }} />
           </MenuItem>
         ))}
         <MenuItem onClick={onDelete}>
@@ -74,12 +87,23 @@ export default function MoreMenu({ onDelete, title, statusProps }) {
   );
 }
 
-const statuses = [
-  "Mark as 'Not started'",
-  "Mark as 'In progress'",
-  "Mark as 'Blocked/On Hold'",
-  "Mark as 'Ready to submit'",
-  "Mark as 'Under review'",
-  "Mark as 'Accepted'",
-  "Mark as 'Completed'"
+const possibleStatus = [
+  { 'Not started': [{ id: 1, value: "Mark as 'In progress'" }] },
+  {
+    'In progress': [
+      { id: 2, value: "Mark as 'Blocked/On Hold'" },
+      { id: 3, value: "Mark as 'Ready to submit'" }
+    ]
+  },
+  { 'Blocked/On Hold': [] },
+  { 'Ready to submit': [{ id: 4, value: "Mark as 'Submitted/Under review'" }] },
+  {
+    'Submitted/Under review': [
+      { id: 5, value: "Mark as 'Rejected'" },
+      { id: 6, value: "Mark as 'Accepted'" }
+    ]
+  },
+  { Rejected: [{ id: 1, value: "Mark as 'In progress'" }] },
+  { Accepted: [{ id: 7, value: "Mark as 'Published'" }] },
+  { Published: [] }
 ];

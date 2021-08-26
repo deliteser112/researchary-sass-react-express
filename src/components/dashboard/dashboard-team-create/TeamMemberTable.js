@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import { filter } from 'lodash';
+import React, { useEffect, useState } from 'react';
 
 import {
   Table,
@@ -13,11 +14,26 @@ import {
   Typography
 } from '@material-ui/core';
 
+import TeamMemberMoreMenu from './TeamMemberMoreMenu';
+
 TeamMemberTable.propTypes = {
-  members: PropTypes.array
+  members: PropTypes.array,
+  deleteProps: PropTypes.func
 };
 
-export default function TeamMemberTable({ members }) {
+export default function TeamMemberTable({ members, deleteProps }) {
+  const [addedMembers, setAddedMembers] = useState([]);
+
+  useEffect(() => {
+    setAddedMembers([...members]);
+  }, [members]);
+
+  const handleDeleteMember = (id) => {
+    const oldMembers = addedMembers;
+    const newMembers = filter(oldMembers, (member) => member.id !== id);
+    setAddedMembers([...newMembers]);
+    deleteProps([...newMembers]);
+  };
   return (
     <TableContainer>
       <Table aria-label="simple table">
@@ -26,10 +42,11 @@ export default function TeamMemberTable({ members }) {
             <TableCell>No</TableCell>
             <TableCell align="left">Name</TableCell>
             <TableCell align="right">Email</TableCell>
+            <TableCell align="right" />
           </TableRow>
         </TableHead>
         <TableBody>
-          {members.map((row, index) => (
+          {addedMembers.map((row, index) => (
             <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
               <TableCell component="th" scope="row">
                 {index + 1}
@@ -43,6 +60,13 @@ export default function TeamMemberTable({ members }) {
                 </Stack>
               </TableCell>
               <TableCell align="right">{row.email}</TableCell>
+              <TableCell align="right">
+                <TeamMemberMoreMenu
+                  name={`${row.firstname} ${row.lastname}`}
+                  deleteProps={handleDeleteMember}
+                  deleteId={row.id}
+                />
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

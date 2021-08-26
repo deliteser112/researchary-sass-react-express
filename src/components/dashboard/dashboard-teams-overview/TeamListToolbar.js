@@ -1,25 +1,13 @@
 import PropTypes from 'prop-types';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Icon } from '@iconify/react';
 import searchFill from '@iconify/icons-eva/search-fill';
 import trash2Fill from '@iconify/icons-eva/trash-2-fill';
 import roundFilterList from '@iconify/icons-ic/round-filter-list';
-import TextField from '@material-ui/core/TextField';
-import Autocomplete from '@material-ui/core/Autocomplete';
 // material
 import { useTheme, experimentalStyled as styled } from '@material-ui/core/styles';
-import {
-  Box,
-  Toolbar,
-  Tooltip,
-  IconButton,
-  Typography,
-  OutlinedInput,
-  InputAdornment,
-  Divider
-} from '@material-ui/core';
-import MenuPopover from '../../MenuPopover';
+import { Box, Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@material-ui/core';
 // ----------------------------------------------------------------------
 
 const RootStyle = styled(Toolbar)(({ theme }) => ({
@@ -54,14 +42,6 @@ export default function TeamListToolbar({ numSelected, filterName, onFilterName 
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
   const anchorRef = useRef(null);
-  const [open, setOpen] = useState(false);
-
-  const handleOpen = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
 
   return (
     <RootStyle
@@ -97,31 +77,11 @@ export default function TeamListToolbar({ numSelected, filterName, onFilterName 
         </Tooltip>
       ) : (
         <Tooltip title="Filter list" placement="top">
-          <IconButton ref={anchorRef} onClick={handleOpen}>
+          <IconButton ref={anchorRef}>
             <Icon icon={roundFilterList} />
           </IconButton>
         </Tooltip>
       )}
-      <MenuPopover open={open} onClose={handleClose} anchorEl={anchorRef.current} sx={{ px: 3, pb: 4, minWidth: 300 }}>
-        <Box sx={{ my: 1.5 }}>
-          <Typography variant="subtitle1" noWrap>
-            Filter teams
-          </Typography>
-        </Box>
-
-        <Divider sx={{ my: 1 }} />
-
-        <Typography variant="subtitle">Status</Typography>
-        <Autocomplete
-          disablePortal
-          id="combo-box-demo"
-          options={Status}
-          sx={{ width: '100%' }}
-          renderInput={(params) => <TextField {...params} label="Any Status" />}
-        />
-      </MenuPopover>
     </RootStyle>
   );
 }
-
-const Status = ['Not started', 'In progress', 'On Hold', 'Ready to submit', 'Under review', 'Accepted', 'Rejected'];

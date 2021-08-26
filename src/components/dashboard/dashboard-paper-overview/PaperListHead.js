@@ -6,7 +6,7 @@ import { Box, Checkbox, TableRow, TableCell, TableHead, TableSortLabel } from '@
 
 // ----------------------------------------------------------------------
 
-TeamListHead.propTypes = {
+PaperListHead.propTypes = {
   order: PropTypes.oneOf(['asc', 'desc']),
   orderBy: PropTypes.string,
   rowCount: PropTypes.number,
@@ -16,7 +16,7 @@ TeamListHead.propTypes = {
   onSelectAllClick: PropTypes.func
 };
 
-export default function TeamListHead({
+export default function PaperListHead({
   order,
   orderBy,
   rowCount,

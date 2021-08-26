@@ -33,7 +33,7 @@ import usePaper from '../hooks/usePaper';
 
 // redux
 import { getUsers } from '../redux/slices/user';
-import { getTopics, getPaperList } from '../redux/slices/paper';
+import { getTopics, getRecommandTopics, getPaperList } from '../redux/slices/paper';
 import { getConferenceList } from '../redux/slices/conference';
 import { useDispatch, useSelector } from '../redux/store';
 
@@ -129,7 +129,7 @@ export default function PaperCreate() {
   const theme = useTheme();
 
   const { users } = useSelector((state) => state.user);
-  const { topics, paperList } = useSelector((state) => state.paper);
+  const { topics, recommandTopics, paperList } = useSelector((state) => state.paper);
   const { conferenceList } = useSelector((state) => state.conference);
 
   const { pathname } = useLocation();
@@ -147,11 +147,14 @@ export default function PaperCreate() {
 
   const [conferences, setConferences] = useState([]);
 
+  const [validation, setValidation] = useState({ title: false });
+
   useEffect(() => {
     dispatch(getUsers());
     dispatch(getPaperList());
     dispatch(getConferenceList());
     dispatch(getTopics());
+    dispatch(getRecommandTopics());
   }, [dispatch]);
 
   useEffect(() => {
@@ -181,8 +184,14 @@ export default function PaperCreate() {
       newSkipped = new Set(newSkipped.values());
       newSkipped.delete(activeStep);
     }
-
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    if (paperData.detailForm !== undefined) {
+      if (paperData.detailForm.title.length > 0) {
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      } else {
+        setValidation({ title: true });
+        setActiveStep((prevActiveStep) => prevActiveStep);
+      }
+    }
     setSaveInDraft(newSkipped);
 
     if (activeStep === 2) {
@@ -252,7 +261,9 @@ export default function PaperCreate() {
                 {activeStep === 0 && (
                   <DetailForm
                     topics={topics}
+                    recommandTopics={recommandTopics}
                     privacies={Privacies}
+                    validation={validation}
                     detailFormProps={handleDetailForm}
                     currentPaper={currentPaper}
                     isEdit={isEdit}

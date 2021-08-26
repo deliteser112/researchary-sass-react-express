@@ -24,6 +24,9 @@ import {
   Typography
 } from '@material-ui/core';
 // import AvatarGroup from '@material-ui/lab/AvatarGroup';
+
+// hooks
+import usePaper from '../hooks/usePaper';
 // redux
 import { useDispatch, useSelector } from '../redux/store';
 import { getPublishedList, deletePublished } from '../redux/slices/paper';
@@ -84,6 +87,7 @@ function applySortFilter(array, comparator, query) {
 export default function UserList() {
   const theme = useTheme();
   const dispatch = useDispatch();
+  const { deletePaperPost } = usePaper();
   const { publishedList } = useSelector((state) => state.paper);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
@@ -140,6 +144,8 @@ export default function UserList() {
   };
 
   const handleDeletePaper = (paperId) => {
+    const pId = { paperId };
+    deletePaperPost({ pId });
     dispatch(deletePublished(paperId));
   };
 
@@ -172,7 +178,12 @@ export default function UserList() {
         />
 
         <Card>
-          <PaperListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          <PaperListToolbar
+            numSelected={selected.length}
+            filterName={filterName}
+            onFilterName={handleFilterByName}
+            isPublished
+          />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
@@ -220,7 +231,7 @@ export default function UserList() {
                         <TableCell align="left">
                           <Label
                             variant={theme.palette.mode === 'light' ? 'ghost' : 'filled'}
-                            color={(status === 'Completed' && 'success') || 'secondary'}
+                            color={(status === 'Published' && 'success') || 'secondary'}
                           >
                             {sentenceCase(status)}
                           </Label>
@@ -242,7 +253,12 @@ export default function UserList() {
                         <TableCell align="left">{view}</TableCell>
 
                         <TableCell align="right">
-                          <PaperMoreMenu onDelete={() => handleDeletePaper(id)} paperId={id} />
+                          <PaperMoreMenu
+                            onDelete={(paperId) => handleDeletePaper(paperId)}
+                            paperId={id}
+                            authors={authors}
+                            paperName={title}
+                          />
                         </TableCell>
                       </TableRow>
                     );

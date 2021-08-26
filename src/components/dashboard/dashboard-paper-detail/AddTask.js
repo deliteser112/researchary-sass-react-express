@@ -86,7 +86,7 @@ export default function AddTask({ paperId, taskId, authors, isEdit }) {
 
   const [open, setOpen] = useState(false);
 
-  const [title, setTitle] = useState('Task 1');
+  const [title, setTitle] = useState('');
   const [assignTo, setAssignTo] = useState(0);
   const [status, setStatus] = useState(0);
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
@@ -180,7 +180,7 @@ export default function AddTask({ paperId, taskId, authors, isEdit }) {
         setOpen(false);
         setTimeout(() => {
           dispatch(getTaskList());
-        }, 500);
+        }, 10);
       });
     }
   };

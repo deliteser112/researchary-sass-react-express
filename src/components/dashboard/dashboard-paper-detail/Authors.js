@@ -7,6 +7,13 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 
 import { TextField, Box, Button, Typography, Autocomplete } from '@material-ui/core';
 
+// hooks
+import usePaper from '../../../hooks/usePaper';
+
+// redux
+import { getUsers } from '../../../redux/slices/user';
+import { useDispatch, useSelector } from '../../../redux/store';
+
 import CoAuthorsTable from './CoAuthorsTable';
 import HasErrorDialog from '../../HasErrorDialog';
 
@@ -17,57 +24,63 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-CoAuthorsForm.propTypes = {
+Authors.propTypes = {
   currentPaper: PropTypes.object,
-  isEdit: PropTypes.bool,
-  coAuthors: PropTypes.array,
-  coAuthorFormProps: PropTypes.func
+  onAuthorChange: PropTypes.func
 };
 
-export default function CoAuthorsForm({ currentPaper, isEdit, coAuthors, coAuthorFormProps }) {
+export default function Authors({ onAuthorChange, currentPaper }) {
   const theme = useTheme();
   const classes = useStyles();
+  const dispatch = useDispatch();
+  const { setAuthor } = usePaper();
+
+  const { users } = useSelector((state) => state.user);
 
   const [authors, setAuthors] = useState([]);
+  const [coAuthors, setCoAuthors] = useState([]);
   const [selectedAuthor, setSelectedAuthor] = useState('');
 
   const [isAdded, setIsAdded] = useState(false);
   const [errorContent, setErrorContent] = useState('');
 
+  const [paperId, setPaperId] = useState(0);
   useEffect(() => {
-    coAuthorFormProps([]);
-  }, []);
+    dispatch(getUsers());
+  }, [dispatch]);
 
   useEffect(() => {
-    if (isEdit) {
-      const { authors } = currentPaper;
-      setAuthors([...authors]); // table
-      coAuthorFormProps([...authors]); // saving
-    }
-  }, [currentPaper, isEdit]);
+    setCoAuthors([...users]);
+  }, [users]);
+
+  useEffect(() => {
+    const { authors, id } = currentPaper;
+    setAuthors([...authors]); // table
+    setPaperId(id);
+  }, [currentPaper]);
 
   const handleAuthors = (author) => {
     setSelectedAuthor(author);
   };
 
-  const handleClickAddCoAuthors = () => {
+  const handleClickAddCoAuthors = async () => {
     const oldAuthors = authors;
-    if (selectedAuthor !== null && selectedAuthor.email !== undefined) {
-      let isAdded = false;
-      authors.map((author) => {
-        if (author.email === selectedAuthor.email) {
-          isAdded = true;
-        }
-      });
-
-      if (!isAdded) {
-        oldAuthors.push(selectedAuthor);
-        setAuthors([...oldAuthors]);
-        coAuthorFormProps([...oldAuthors]);
-      } else {
-        setIsAdded(true);
-        setErrorContent('This author was already added!');
+    let isAdded = false;
+    authors.map((author) => {
+      if (author.email === selectedAuthor.email) {
+        isAdded = true;
       }
+    });
+
+    if (!isAdded) {
+      oldAuthors.push(selectedAuthor);
+      setAuthors([...oldAuthors]);
+      const data = { paperId, authors: oldAuthors };
+      await setAuthor({ data }); // database resets,,,, this is not state
+      onAuthorChange();
+    } else {
+      setIsAdded(true);
+      setErrorContent('This author was already added!');
     }
   };
 
@@ -75,8 +88,10 @@ export default function CoAuthorsForm({ currentPaper, isEdit, coAuthors, coAutho
     setIsAdded(false);
   };
 
-  const handleDeleteProps = (newAuthors) => {
-    coAuthorFormProps([...newAuthors]);
+  const handleDeleteProps = async (newAuthors) => {
+    const data = { paperId, authors: newAuthors };
+    await setAuthor({ data }); // database resets,,,, this is not state
+    onAuthorChange();
     setAuthors([...newAuthors]);
   };
 

@@ -5,7 +5,6 @@ import { Icon } from '@iconify/react';
 import searchFill from '@iconify/icons-eva/search-fill';
 import trash2Fill from '@iconify/icons-eva/trash-2-fill';
 import roundFilterList from '@iconify/icons-ic/round-filter-list';
-import TextField from '@material-ui/core/TextField';
 // material
 import { useTheme, experimentalStyled as styled } from '@material-ui/core/styles';
 import {
@@ -17,7 +16,10 @@ import {
   OutlinedInput,
   InputAdornment,
   Divider,
-  Autocomplete
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@material-ui/core';
 import MenuPopover from '../../MenuPopover';
 // ----------------------------------------------------------------------
@@ -47,10 +49,12 @@ const SearchStyle = styled(OutlinedInput)(({ theme }) => ({
 TaskListToolbar.propTypes = {
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
+  filterStatus: PropTypes.string,
+  onFilterStatus: PropTypes.func,
   onFilterName: PropTypes.func
 };
 
-export default function TaskListToolbar({ numSelected, filterName, onFilterName }) {
+export default function TaskListToolbar({ numSelected, filterName, onFilterStatus, onFilterName, filterStatus }) {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
   const anchorRef = useRef(null);
@@ -61,6 +65,10 @@ export default function TaskListToolbar({ numSelected, filterName, onFilterName 
   };
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleChangeStatus = (e) => {
+    onFilterStatus(e.target.value);
   };
 
   return (
@@ -111,17 +119,34 @@ export default function TaskListToolbar({ numSelected, filterName, onFilterName 
 
         <Divider sx={{ my: 1 }} />
 
-        <Typography variant="subtitle">Status</Typography>
-        <Autocomplete
-          disablePortal
-          id="combo-box-demo"
-          options={Status}
-          sx={{ width: '100%' }}
-          renderInput={(params) => <TextField {...params} label="Any Status" />}
-        />
+        <FormControl variant="outlined" sx={{ width: '100%' }}>
+          <InputLabel id="demo-simple-select-outlined-label">Status</InputLabel>
+          <Select
+            labelId="demo-simple-select-outlined-label"
+            id="demo-simple-select-outlined"
+            value={filterStatus}
+            onChange={handleChangeStatus}
+            onClick={handleClose}
+            label="Year"
+          >
+            {Status.map((item, index) => (
+              <MenuItem key={index} value={item.status === 'All Status' ? '' : item.status}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Box sx={{ width: 10, height: 10, backgroundColor: `${item.color}`, borderRadius: '50%', mr: 1 }} />
+                  <Typography variant="body2">{item.status}</Typography>
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </MenuPopover>
     </RootStyle>
   );
 }
 
-const Status = ['Not started', 'In progress', 'Completed'];
+const Status = [
+  { color: '#FFDE5D', status: 'All Status' },
+  { color: 'gray', status: 'Not started' },
+  { color: '#1939B7', status: 'In progress' },
+  { color: '#007B55', status: 'Completed' }
+];

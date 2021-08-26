@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import searchFill from '@iconify/icons-eva/search-fill';
 import trash2Fill from '@iconify/icons-eva/trash-2-fill';
@@ -17,9 +17,17 @@ import {
   Typography,
   OutlinedInput,
   InputAdornment,
-  Divider
+  Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Rating
 } from '@material-ui/core';
+
 import MenuPopover from '../../MenuPopover';
+
+import { CONSTANTS } from '../../../utils/constants';
 // ----------------------------------------------------------------------
 
 const RootStyle = styled(Toolbar)(({ theme }) => ({
@@ -47,14 +55,32 @@ const SearchStyle = styled(OutlinedInput)(({ theme }) => ({
 ConferenceListToolbar.propTypes = {
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
-  onFilterName: PropTypes.func
+  filterCountry: PropTypes.object,
+  filterRating: PropTypes.string,
+  onFilterName: PropTypes.func,
+  onFilterCountry: PropTypes.func,
+  onFilterRating: PropTypes.func
 };
 
-export default function ConferenceListToolbar({ numSelected, filterName, onFilterName }) {
+export default function ConferenceListToolbar({
+  numSelected,
+  filterName,
+  filterCountry,
+  filterRating,
+  onFilterName,
+  onFilterCountry,
+  onFilterRating
+}) {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
+
+  const [locations, setLocations] = useState([]);
+
+  useEffect(() => {
+    setLocations(CONSTANTS.locations);
+  }, []);
 
   const handleOpen = () => {
     setOpen(true);
@@ -80,7 +106,7 @@ export default function ConferenceListToolbar({ numSelected, filterName, onFilte
         <SearchStyle
           value={filterName}
           onChange={onFilterName}
-          placeholder="Search teams..."
+          placeholder="Search conferences..."
           startAdornment={
             <InputAdornment position="start">
               <Box component={Icon} icon={searchFill} sx={{ color: 'text.disabled' }} />
@@ -105,23 +131,48 @@ export default function ConferenceListToolbar({ numSelected, filterName, onFilte
       <MenuPopover open={open} onClose={handleClose} anchorEl={anchorRef.current} sx={{ px: 3, pb: 4, minWidth: 300 }}>
         <Box sx={{ my: 1.5 }}>
           <Typography variant="subtitle1" noWrap>
-            Filter teams
+            Filter conferences
           </Typography>
         </Box>
 
         <Divider sx={{ my: 1 }} />
-
-        <Typography variant="subtitle">Status</Typography>
+        <Box m={2} />
         <Autocomplete
-          disablePortal
-          id="combo-box-demo"
-          options={Status}
           sx={{ width: '100%' }}
-          renderInput={(params) => <TextField {...params} label="Any Status" />}
+          id="combo-box-demo"
+          options={locations}
+          onClick={handleClose}
+          getOptionLabel={(option) => option.name}
+          onChange={(event, newValue) => onFilterCountry(newValue)}
+          isOptionEqualToValue={(option, value) => option.name === value.name}
+          value={filterCountry}
+          renderInput={(params) => <TextField {...params} label="Select Country" variant="outlined" />}
         />
+        <Box m={3} />
+        <FormControl variant="outlined" sx={{ width: '100%' }}>
+          <InputLabel id="demo-simple-select-outlined-label">Status</InputLabel>
+          <Select
+            labelId="demo-simple-select-outlined-label"
+            id="demo-simple-select-outlined"
+            value={filterRating}
+            onChange={onFilterRating}
+            onClick={handleClose}
+            label="Year"
+          >
+            {rates.map((item) => (
+              <MenuItem key={item} value={item === 0 ? '' : item.toString()}>
+                {item === 0 ? (
+                  <Typography variant="body2">All rating</Typography>
+                ) : (
+                  <Rating name="read-only" size="small" max={3} value={item} readOnly />
+                )}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </MenuPopover>
     </RootStyle>
   );
 }
 
-const Status = ['Not started', 'In progress', 'On Hold', 'Ready to submit', 'Under review', 'Accepted', 'Rejected'];
+const rates = [0, 1, 2, 3];

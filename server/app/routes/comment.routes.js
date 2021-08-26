@@ -1,4 +1,4 @@
-const controller = require('../controllers/file.controller');
+const controller = require('../controllers/comment.controller');
 
 module.exports = (app) => {
   app.use((req, res, next) => {
@@ -8,8 +8,8 @@ module.exports = (app) => {
 
   // -----------------------------------------------------------------------------------
 
-  app.get('/api/paper/paper-files', controller.getPaperFiles);
+  app.get('/api/paper/paper-comments', controller.getPaperComments);
 
   // -----------------------------------------------------------------------------------
-  app.post('/api/paper/upload-files', controller.uploadFiles);
+  app.post('/api/paper/create-comment', controller.createComment);
 };

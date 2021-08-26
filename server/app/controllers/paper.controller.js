@@ -1,6 +1,4 @@
-/* eslint-disable no-continue */
 /* eslint-disable consistent-return */
-/* eslint-disable no-await-in-loop */
 /* eslint-disable array-callback-return */
 const jwt = require('jsonwebtoken');
 
@@ -37,9 +35,19 @@ exports.createPaper = (req, res) => {
 
   Paper.create({ title, description, privacy, openRequest, target: targetForm, status: 0 }).then(async (paper) => {
     const authorIds = [];
+
+    let isExistOriginalAuthor = false;
     coAuthors.map((author) => {
       authorIds.push(author.id);
+      if (author.id === userId) {
+        isExistOriginalAuthor = true;
+      }
     });
+
+    if (coAuthors.length === 0 || !isExistOriginalAuthor) {
+      authorIds.push(userId);
+    }
+
     paper.setUsers(authorIds);
 
     const customTags = await Topic.findAll().then((topics) => {
@@ -75,9 +83,21 @@ exports.createPaper = (req, res) => {
 
     paper.setTopics(paperTagIds);
 
-    User.findOne({ where: { id: userId } }).then((user) => {
-      user.setTopics(newTagIds);
-    });
+    if (newTagIds.length > 0) {
+      User.findOne({ where: { id: userId } }).then(async (user) => {
+        const tmpTagIds = await user.getTopics();
+        const oldTagIds = [];
+        tmpTagIds.map((tag) => {
+          const { id, isActive } = tag;
+          if (isActive) {
+            oldTagIds.push(id);
+          }
+        });
+
+        const tmpNewIds = oldTagIds.concat(newTagIds);
+        user.setTopics(tmpNewIds);
+      });
+    }
   });
 
   res.status(200).send({ message: 'success' });
@@ -136,14 +156,77 @@ exports.getTopics = (req, res) => {
   Topic.findAll().then((topicDatas) => {
     const topics = [];
     topicDatas.map((topic) => {
-      const { name, isActive } = topic;
+      const { id, name, isActive } = topic;
       if (isActive) {
-        topics.push(name);
+        topics.push({ id, name });
       }
     });
     res.status(200).send({ topics });
   });
 };
+
+// ----------------------------------------------------------------------
+// Get Recommand Topics
+// ----------------------------------------------------------------------
+
+exports.getRecommandTopics = (req, res) => {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(400).send([]);
+  }
+
+  const accessToken = authorization.split(' ')[1];
+  const { userId } = jwt.verify(accessToken, JWT_SECRET);
+
+  User.findOne({ where: { id: userId } }).then(async (user) => {
+    const userTopics = await user.getTopics();
+    const userTeams = await user.getTeams();
+    const teamTopics = await getTeamTopics(userTeams);
+
+    const tmpTeamTopics = [];
+    const tmpTopics = [];
+    teamTopics.map((teamTopic) => {
+      teamTopic.map((topic) => {
+        const { id, name, isActive } = topic;
+        if (isActive) {
+          tmpTeamTopics.push({ id, name });
+        }
+      });
+    });
+    userTopics.map((userTopic) => {
+      const { id, name, isActive } = userTopic;
+      if (isActive) {
+        tmpTopics.push({ id, name });
+      }
+    });
+
+    const tmpFTopics = tmpTopics.concat(tmpTeamTopics);
+
+    const resTopics = [];
+    for (let i = 0; i < tmpFTopics.length; i += 1) {
+      let isExist = false;
+      for (let j = i + 1; j < tmpFTopics.length; j += 1) {
+        if (tmpFTopics[i].id === tmpFTopics[j].id) {
+          isExist = true;
+          break;
+        }
+      }
+      if (!isExist) resTopics.push(tmpFTopics[i]);
+    }
+
+    res.status(200).send(resTopics);
+  });
+};
+
+async function getTeamTopics(teams) {
+  const asyncRes = await Promise.all(
+    teams.map(async (team) => {
+      const teamTopics = await team.getTopics();
+      return teamTopics;
+    })
+  );
+  return asyncRes;
+}
 
 // ----------------------------------------------------------------------
 // Get All Papers
@@ -161,7 +244,7 @@ exports.getAllPapers = (req, res) => {
 // ----------------------------------------------------------------------
 
 exports.getPublishedPapers = (req, res) => {
-  Paper.findAll({ where: { status: 6 } }).then(async (papers) => {
+  Paper.findAll({ where: { status: 7 } }).then(async (papers) => {
     const PublishedPapers = await getPapers(papers);
     res.status(200).send(PublishedPapers);
   });
@@ -176,7 +259,7 @@ async function getPapers(papers) {
       const topicData = await paper.getTopics();
 
       topicData.map((topic) => {
-        topics.push(topic.name);
+        topics.push(topic.id);
       });
 
       const conf = await Conference.findOne({ where: { id: target } });
@@ -241,9 +324,19 @@ exports.updatePaper = (req, res) => {
 
   Paper.findOne({ where: { id } }).then(async (paper) => {
     const authorIds = [];
+
+    let isExistOriginalAuthor = false;
     coAuthors.map((author) => {
       authorIds.push(author.id);
+      if (author.id === userId) {
+        isExistOriginalAuthor = true;
+      }
     });
+
+    if (coAuthors.length === 0 || !isExistOriginalAuthor) {
+      authorIds.push(userId);
+    }
+
     paper.setUsers(authorIds);
 
     const customTags = await Topic.findAll().then((topics) => {
@@ -279,9 +372,21 @@ exports.updatePaper = (req, res) => {
 
     paper.setTopics(paperTagIds);
 
-    User.findOne({ where: { id: userId } }).then((user) => {
-      user.setTopics(newTagIds);
-    });
+    if (newTagIds.length > 0) {
+      User.findOne({ where: { id: userId } }).then(async (user) => {
+        const tmpTagIds = await user.getTopics();
+        const oldTagIds = [];
+        tmpTagIds.map((tag) => {
+          const { id, isActive } = tag;
+          if (isActive) {
+            oldTagIds.push(id);
+          }
+        });
+
+        const tmpNewIds = oldTagIds.concat(newTagIds);
+        user.setTopics(tmpNewIds);
+      });
+    }
   });
 
   res.status(200).send({ message: 'success' });
@@ -314,4 +419,88 @@ exports.updateStatus = async (req, res) => {
   Paper.update({ status: statusId }, { where: { id: pId } }).then(() => {
     res.status(200).send({ message: 'success' });
   });
+};
+
+// ----------------------------------------------------------------------
+// Set authors by paper Id
+// ----------------------------------------------------------------------
+
+exports.setAuthors = async (req, res) => {
+  const { paperId, authors } = req.body;
+
+  const { authorization } = req.headers;
+  if (!authorization) {
+    return res.status(400).send([]);
+  }
+
+  const accessToken = authorization.split(' ')[1];
+  const { userId } = jwt.verify(accessToken, JWT_SECRET);
+
+  const userInfo = await User.findOne({ where: { id: userId } });
+  const { firstname, lastname, photoURL } = userInfo;
+
+  Paper.findOne({ where: { id: paperId } }).then(async (paper) => {
+    const authorIds = [];
+    authors.map((author) => {
+      authorIds.push(author.id);
+    });
+
+    const oldAuthors = await paper.getUsers();
+    let changedAuthor = 0;
+    let isAdded = false;
+    if (authorIds.length > oldAuthors.length) {
+      isAdded = true;
+      authorIds.map((authorId) => {
+        let isExist = false;
+        oldAuthors.map((author) => {
+          if (authorId === author.id) {
+            isExist = true;
+          }
+        });
+        if (!isExist) {
+          changedAuthor = authorId;
+        }
+      });
+    } else {
+      isAdded = false;
+      oldAuthors.map((author) => {
+        let isExist = false;
+        authorIds.map((authorId) => {
+          if (authorId === author.id) {
+            isExist = true;
+          }
+        });
+        if (!isExist) {
+          changedAuthor = author.id;
+        }
+      });
+    }
+    const name = `${firstname} ${lastname}`;
+    const date = new Date().toDateString();
+    let eventText = '';
+    if (isAdded) {
+      eventText = `On ${date}, ${name} added an author`;
+    } else {
+      eventText = `On ${date}, ${name} removed an author`;
+    }
+    const changedAuthorInfo = await User.findOne({ where: { id: changedAuthor } });
+
+    const authorName = `${changedAuthorInfo.firstname} ${changedAuthorInfo.lastname}`;
+
+    const eventContent = `Author name: "${authorName}"`;
+    const isStatus = false;
+    await Timeline.create({ name, date, eventText, eventContent, isStatus, photoURL, userId, paperId });
+    await paper.setUsers(authorIds);
+  });
+  res.status(200).send({ message: 'success!' });
+};
+
+// ----------------------------------------------------------------------
+// Delete Paper by paper Id
+// ----------------------------------------------------------------------
+
+exports.deletePaper = async (req, res) => {
+  const { paperId } = req.body;
+  Paper.destroy({ where: { id: paperId } });
+  res.status(200).send({ message: 'success!' });
 };

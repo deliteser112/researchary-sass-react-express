@@ -17,14 +17,16 @@ import {
 } from '@material-ui/core';
 import CheckIcon from '@material-ui/icons/Check';
 
-function createData(name, subName, rate, deadline, targeted) {
-  return { name, subName, rate, deadline, targeted };
-}
+// function createData(name, subName, rate, deadline, targeted) {
+//   return { name, subName, rate, deadline, targeted };
+// }
 
-const rows = [
-  createData('IEEE COINS 2021 [2021]', 'BARCELONA - ES', 2, '18 Dec 2020', true),
-  createData('ICBC [2021]', 'Sydney - AU', 3, '30 Apr 2021', false)
-];
+// const rows = [
+//   createData('IEEE COINS 2021 [2021]', 'BARCELONA - ES', 2, '18 Dec 2020', true),
+//   createData('ICBC [2021]', 'Sydney - AU', 3, '30 Apr 2021', false)
+// ];
+
+const rows = [];
 
 const ToggleButtonStyle = withStyles({
   root: {

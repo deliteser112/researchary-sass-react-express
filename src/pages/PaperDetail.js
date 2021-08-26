@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import { useTheme } from '@material-ui/core/styles';
 import { Icon } from '@iconify/react';
 import { capitalCase } from 'change-case';
@@ -17,20 +18,20 @@ import { Container, Tab, Box, Tabs, Stack, Typography, Avatar, Tooltip, AvatarGr
 // hooks
 import usePaper from '../hooks/usePaper';
 // redux
-import { getPaperList } from '../redux/slices/paper';
+import { getPaperList, getTopics } from '../redux/slices/paper';
 import { useDispatch, useSelector } from '../redux/store';
 // components
 import Page from '../components/Page';
 import Label from '../components/Label';
 
-import { Details, Tasks, Files, Timeline } from '../components/dashboard/dashboard-paper-detail';
+import { Details, Tasks, Files, Timeline, Comments, Authors } from '../components/dashboard/dashboard-paper-detail';
 // ----------------------------------------------------------------------
 
 export default function UserAccount() {
   const theme = useTheme();
   const dispatch = useDispatch();
 
-  const { paperList } = useSelector((state) => state.paper);
+  const { paperList, topics } = useSelector((state) => state.paper);
   const { updateStatus } = usePaper();
   const { paperId } = useParams();
   const currentPaper = paperList.find((paper) => paper.id === Number(paperId));
@@ -40,9 +41,14 @@ export default function UserAccount() {
   const [paperTitle, setPaperTitle] = useState('');
   const [authors, setAuthors] = useState([]);
 
+  const [detailTopics, setDetailTopics] = useState([]);
+
+  const [propTopics, setPropTopics] = useState([]);
+
   const [pId, setPaperId] = useState(0);
 
   useEffect(() => {
+    dispatch(getTopics());
     dispatch(getPaperList());
   }, [dispatch]);
 
@@ -51,14 +57,27 @@ export default function UserAccount() {
   }, []);
 
   useEffect(() => {
+    setDetailTopics([...topics]);
+  }, [topics]);
+
+  useEffect(() => {
     if (currentPaper !== undefined) {
-      const { id, title, authors, status } = currentPaper;
+      const { id, title, authors, status, topics } = currentPaper;
       setPaperTitle(title);
       setAuthors([...authors]);
       setStatus(status);
       setPaperId(id);
+      const propsTopics = [];
+      detailTopics.map((dTopic) => {
+        topics.map((top) => {
+          if (top === dTopic.id) {
+            propsTopics.push(dTopic);
+          }
+        });
+      });
+      setPropTopics([...propsTopics]);
     }
-  }, [currentPaper]);
+  }, [currentPaper, detailTopics]);
 
   const handleChangeTab = (event, newValue) => {
     setCurrentTab(newValue);
@@ -70,11 +89,17 @@ export default function UserAccount() {
     updateStatus({ statusData });
   };
 
+  const handleAuthorChange = () => {
+    setTimeout(() => {
+      dispatch(getPaperList());
+    }, 1000);
+  };
+
   const ACCOUNT_TABS = [
     {
       value: 'details',
       icon: <Icon icon={roundReceipt} width={20} height={20} />,
-      component: <Details currentPaper={currentPaper} statusProps={handleStatus} />
+      component: <Details currentPaper={currentPaper} propTopics={propTopics} statusProps={handleStatus} />
     },
     {
       value: 'tasks',
@@ -89,7 +114,7 @@ export default function UserAccount() {
     {
       value: 'comments',
       icon: <FeedbackIcon />,
-      component: 'Comments page is coming soon'
+      component: <Comments currentPaper={currentPaper} />
     },
     {
       value: 'link',
@@ -99,7 +124,7 @@ export default function UserAccount() {
     {
       value: 'authors',
       icon: <GroupIcon />,
-      component: 'Authors page is coming soon'
+      component: <Authors onAuthorChange={handleAuthorChange} currentPaper={currentPaper} />
     },
     {
       value: 'timeline',
@@ -125,7 +150,8 @@ export default function UserAccount() {
                 (status === 'In progress' && 'secondary') ||
                 (status === 'Blocked/On Hold' && 'error') ||
                 (status === 'Ready to submit' && 'info') ||
-                (status === 'Under review' && 'warning') ||
+                (status === 'Submitted/Under review' && 'warning') ||
+                (status === 'Rejected' && 'error') ||
                 (status === 'Accepted' && 'primary') ||
                 'success'
               }
@@ -172,7 +198,8 @@ const STATUSES = [
   'In progress',
   'Blocked/On Hold',
   'Ready to submit',
-  'Under review',
+  'Submitted/Under review',
+  'Rejected',
   'Accepted',
-  'Completed'
+  'Published'
 ];

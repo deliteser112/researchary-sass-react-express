@@ -9,6 +9,8 @@ module.exports = (app) => {
   // -----------------------------------------------------------------------------------
 
   app.get('/api/conference/all-conferences', controller.getAllConferences);
+  app.get('/api/conference/topics-by-team', controller.getConferenceTopicsByTeam);
+  app.get('/api/conference/topics-by-user', controller.getUserTopics);
 
   // -----------------------------------------------------------------------------------
   app.post('/api/conference/upload-logo', controller.uploadFiles);

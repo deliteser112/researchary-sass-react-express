@@ -1,8 +1,5 @@
-/* eslint-disable prefer-destructuring */
-/* eslint-disable no-continue */
-/* eslint-disable consistent-return */
-/* eslint-disable no-await-in-loop */
 /* eslint-disable array-callback-return */
+/* eslint-disable prefer-destructuring */
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 

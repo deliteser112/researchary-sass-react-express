@@ -8,6 +8,7 @@ module.exports = (app) => {
 
   // -----------------------------------------------------------------------------------
 
+  app.get('/api/paper/recommand-topics', controller.getRecommandTopics);
   app.get('/api/paper/topics', controller.getTopics);
   app.get('/api/paper/all-papers', controller.getAllPapers);
   app.get('/api/paper/published-papers', controller.getPublishedPapers);
@@ -17,4 +18,9 @@ module.exports = (app) => {
   app.post('/api/paper/create-paper', controller.createPaper);
   app.post('/api/paper/update-paper', controller.updatePaper);
   app.post('/api/paper/update-status', controller.updateStatus);
+
+  app.post('/api/paper/update-authors', controller.setAuthors);
+
+  // -----------------------------------------------------------------------------------
+  app.post('/api/paper/delete-paper', controller.deletePaper);
 };

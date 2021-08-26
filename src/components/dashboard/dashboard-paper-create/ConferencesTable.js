@@ -16,7 +16,7 @@ import {
   Rating,
   ToggleButton
 } from '@material-ui/core';
-import CheckIcon from '@material-ui/icons/Check';
+// import CheckIcon from '@material-ui/icons/Check';
 
 // function createData(name, subName, rate, deadline, targeted) {
 //   return { name, subName, rate, deadline, targeted };
@@ -105,7 +105,8 @@ export default function ConferencesTable({ target, conferenceTable, dataProps })
                     setTargetedValue(row.id);
                   }}
                 >
-                  <CheckIcon />
+                  {row.targeted ? 'Targeted' : 'Target'}
+                  {/* <CheckIcon /> */}
                 </ToggleButtonStyle>
               </TableCell>
             </TableRow>

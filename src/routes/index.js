@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { Suspense, lazy } from 'react';
 import { Navigate, useRoutes, useLocation } from 'react-router-dom';
 // layouts
@@ -9,10 +10,10 @@ import LoadingScreen from '../components/LoadingScreen';
 // guards
 import GuestGuard from '../guards/GuestGuard';
 import AuthGuard from '../guards/AuthGuard';
+import RoleBasedGuard from '../guards/RoleBasedGuard';
 // ----------------------------------------------------------------------
 
 const Loadable = (Component) => (props) => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { pathname } = useLocation();
   const isDashboard = pathname.includes('/dashboard');
 
@@ -89,7 +90,14 @@ export default function Router() {
             { path: 'overview', element: <PaperOverview /> },
             { path: 'published', element: <PaperPublished /> },
             { path: 'create', element: <PaperCreate /> },
-            { path: '/:paperId/edit', element: <PaperCreate /> },
+            {
+              path: '/:paperId/edit',
+              element: (
+                <RoleBasedGuard>
+                  <PaperCreate />
+                </RoleBasedGuard>
+              )
+            },
             { path: '/:paperId/detail', element: <PaperDetail /> }
           ]
         },

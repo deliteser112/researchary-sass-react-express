@@ -29,6 +29,7 @@ db.team = require('./team.model')(sequelize, Sequelize);
 db.conference = require('./conference.model')(sequelize, Sequelize);
 db.version = require('./version.model')(sequelize, Sequelize);
 db.timeline = require('./timeline.model')(sequelize, Sequelize);
+db.comment = require('./comment.model')(sequelize, Sequelize);
 
 // paper vs topic relative
 db.topic.belongsToMany(db.paper, {
@@ -164,9 +165,10 @@ db.STATUS = [
   'In progress',
   'Blocked/On Hold',
   'Ready to submit',
-  'Under review',
+  'Submitted/Under review',
+  'Rejected',
   'Accepted',
-  'Completed'
+  'Published'
 ];
 db.TASKSTATUS = ['Not started', 'In progress', 'Completed'];
 

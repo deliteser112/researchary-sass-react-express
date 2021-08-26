@@ -1,7 +1,4 @@
-/* eslint-disable no-continue */
 /* eslint-disable consistent-return */
-/* eslint-disable no-await-in-loop */
-/* eslint-disable array-callback-return */
 const jwt = require('jsonwebtoken');
 
 const config = require('../config/auth.config');

@@ -204,7 +204,7 @@ export default function ListTypeTeam() {
                       <Box sx={{ textAlign: 'center' }}>
                         {topics.map((item, index) => (
                           <ChipButton key={index} variant="outlined">
-                            {item}
+                            {item.name}
                           </ChipButton>
                         ))}
                       </Box>

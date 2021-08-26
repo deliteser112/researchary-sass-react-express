@@ -86,9 +86,9 @@ export default function UploadFile({ currentPaper, uploadProps }) {
       })
       .then(() => {
         setIsLoading(false);
+        uploadProps();
       });
     handleClose();
-    uploadProps();
   };
 
   return (

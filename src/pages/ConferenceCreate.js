@@ -32,9 +32,9 @@ import useConference from '../hooks/useConference';
 
 // redux
 import { getUsers } from '../redux/slices/user';
-import { getTopics } from '../redux/slices/paper';
 import { getTeamList } from '../redux/slices/team';
-import { getConferenceList } from '../redux/slices/conference';
+import { getTopics } from '../redux/slices/paper';
+import { getConferenceList, getConferenceTopicsByTeam, getUserTopics } from '../redux/slices/conference';
 import { useDispatch, useSelector } from '../redux/store';
 
 // components
@@ -128,9 +128,9 @@ ColorlibStepIcon.propTypes = {
 export default function ConferenceCreate() {
   const theme = useTheme();
 
-  const { topics } = useSelector((state) => state.paper);
   const { teamList } = useSelector((state) => state.team);
-  const { conferenceList } = useSelector((state) => state.conference);
+  const { topics } = useSelector((state) => state.paper);
+  const { conferenceList, teamTopics, userTopics } = useSelector((state) => state.conference);
 
   const { pathname } = useLocation();
   const { confId } = useParams();
@@ -143,13 +143,16 @@ export default function ConferenceCreate() {
   const [activeStep, setActiveStep] = useState(0);
   const [saveDraft, setSaveInDraft] = useState(new Set());
 
+  const [validation, setValidation] = useState({ name: false, zbbreviation: false });
   const [conferenceData, setConferenceData] = useState({});
 
   useEffect(() => {
     dispatch(getUsers());
-    dispatch(getTeamList());
-    dispatch(getConferenceList());
     dispatch(getTopics());
+    dispatch(getTeamList());
+    dispatch(getUserTopics());
+    dispatch(getConferenceList());
+    dispatch(getConferenceTopicsByTeam());
   }, [dispatch]);
 
   const isStepSaveDraft = (step) => step === 2;
@@ -162,9 +165,22 @@ export default function ConferenceCreate() {
       newSkipped = new Set(newSkipped.values());
       newSkipped.delete(activeStep);
     }
-
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
     setSaveInDraft(newSkipped);
+
+    if (conferenceData.detailForm !== undefined) {
+      if (conferenceData.detailForm.name.length > 0 && conferenceData.detailForm.abbreviation.length > 0) {
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      } else {
+        if (conferenceData.detailForm.abbreviation.length === 0) {
+          setValidation({ zbbreviation: true });
+        } else if (conferenceData.detailForm.name.length === 0) {
+          setValidation({ name: true });
+        } else {
+          setValidation({ name: false });
+        }
+        setActiveStep((prevActiveStep) => prevActiveStep);
+      }
+    }
 
     if (activeStep === 2) {
       if (!isEdit) {
@@ -232,6 +248,7 @@ export default function ConferenceCreate() {
                 <Box m={4} />
                 {activeStep === 0 && (
                   <DetailForm
+                    validation={validation}
                     detailFormProps={handleDetailForm}
                     currentConference={currentConference}
                     isEdit={isEdit}
@@ -241,6 +258,8 @@ export default function ConferenceCreate() {
                   <ResearchAreasForm
                     topicsFormProps={handleResearchTopics}
                     currentConference={currentConference}
+                    userTopics={userTopics}
+                    teamTopics={teamTopics}
                     topics={topics}
                     teams={teamList}
                     isEdit={isEdit}

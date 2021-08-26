@@ -29,10 +29,6 @@ export default function TeamOverview() {
     dispatch(getTeamList());
   }, [dispatch]);
 
-  useEffect(() => {
-    console.log(teamList);
-  }, [teamList]);
-
   const handleViewType = (event, viewType) => {
     if (viewType !== null) {
       setViewType(viewType);
